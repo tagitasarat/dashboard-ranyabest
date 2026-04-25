@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<!-- saved from url=(0044)file:///C:/Users/acer/Downloads/admin_1.html -->
+<html lang="th"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ร้านยา Best — Admin Dashboard</title>
+<link href="./index_files/css2" rel="stylesheet">
+<style>
+:root {
+  --bg: #F7F5F0; --surface: #FFFFFF; --border: #E2DDD6;
+  --text: #1A1714; --text-muted: #7A746C;
+  --accent: #2D6A4F; --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+  --red: #E53935;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; min-height: 100vh; }
+
+.login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+.login-box { background: var(--surface); border-radius: 20px; padding: 2rem; width: 100%; max-width: 360px; box-shadow: var(--shadow); }
+.login-logo { font-size: 36px; text-align: center; margin-bottom: 8px; }
+.login-title { font-size: 20px; font-weight: 600; text-align: center; margin-bottom: 4px; }
+.login-sub { font-size: 13px; color: var(--text-muted); text-align: center; margin-bottom: 1.5rem; }
+.login-input { width: 100%; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-family: inherit; font-size: 15px; outline: none; margin-bottom: 12px; }
+.login-input:focus { border-color: var(--accent); }
+.login-btn { width: 100%; padding: 12px; border: none; border-radius: 10px; background: var(--accent); color: #fff; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
+.login-error { color: var(--red); font-size: 13px; text-align: center; margin-top: 8px; display: none; }
+
+header { background: var(--accent); padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; }
+.header-title { font-size: 18px; font-weight: 600; color: #fff; }
+.header-role { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 2px; }
+.logout-btn { background: rgba(255,255,255,0.15); border: none; border-radius: 8px; padding: 6px 14px; color: #fff; font-family: inherit; font-size: 13px; cursor: pointer; }
+
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 1.25rem 1.5rem 0; max-width: 900px; margin: 0 auto; }
+.stat-card { background: var(--surface); border-radius: 14px; padding: 1rem; box-shadow: var(--shadow); }
+.stat-label { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+.stat-val { font-size: 22px; font-weight: 600; }
+
+.content { max-width: 900px; margin: 1.25rem auto; padding: 0 1.5rem 3rem; }
+.filter-bar { display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; }
+.filter-select { padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 13px; background: var(--surface); outline: none; cursor: pointer; }
+.refresh-btn { padding: 8px 14px; border: 1.5px solid var(--accent); border-radius: 8px; background: transparent; color: var(--accent); font-family: inherit; font-size: 13px; cursor: pointer; margin-left: auto; }
+.refresh-btn:hover { background: var(--accent); color: #fff; }
+.order-count { font-size: 13px; color: var(--text-muted); }
+
+.order-card { background: var(--surface); border-radius: 14px; border: 1px solid var(--border); padding: 1rem 1.25rem; margin-bottom: 10px; box-shadow: var(--shadow); }
+.order-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px; }
+.order-date { font-size: 12px; color: var(--text-muted); }
+.order-customer { font-size: 15px; font-weight: 500; margin-bottom: 2px; }
+.order-phone { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
+.order-address { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; line-height: 1.5; }
+.order-items { font-size: 13px; background: #F7F5F0; border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; line-height: 1.8; white-space: pre-line; }
+.order-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.order-total { font-size: 16px; font-weight: 600; color: var(--accent); }
+.order-actions { display: flex; gap: 6px; align-items: center; }
+
+.status-badge { display: inline-block; padding: 3px 12px; border-radius: 99px; font-size: 12px; font-weight: 500; }
+.s-wait    { background: #FFF3E0; color: #E65100; }
+.s-process { background: #E3F2FD; color: #1565C0; }
+.s-done    { background: #E8F5E9; color: #2E7D32; }
+.s-cancel  { background: #FFEBEE; color: #C62828; }
+.s-repeat  { background: #F3E5F5; color: #6A1B9A; }
+
+.status-select { padding: 6px 10px; border: 1.5px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 12px; background: var(--surface); outline: none; cursor: pointer; }
+.delete-btn { padding: 6px 12px; border: 1.5px solid #FFCDD2; border-radius: 8px; background: transparent; color: var(--red); font-family: inherit; font-size: 12px; cursor: pointer; }
+.delete-btn:hover { background: var(--red); color: #fff; border-color: var(--red); }
+
+.empty { text-align: center; padding: 3rem; color: var(--text-muted); font-size: 14px; }
+.spinner-wrap { text-align: center; padding: 3rem; }
+.spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1A1714; color: #fff; padding: 10px 20px; border-radius: 99px; font-size: 13px; opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 300; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@media (max-width: 600px) {
+  .stats-grid { padding: 1rem 1rem 0; gap: 8px; }
+  .stat-val { font-size: 18px; }
+  .content { padding: 0 1rem 3rem; }
+  header { padding: 0.875rem 1rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="login-wrap" id="loginWrap">
+  <div class="login-box">
+    <div class="login-logo">💊</div>
+    <div class="login-title">ร้านยา Best</div>
+    <div class="login-sub">Admin Dashboard</div>
+    <input class="login-input" type="password" id="pwInput" placeholder="Password" onkeydown="if(event.key===&#39;Enter&#39;)doLogin()">
+    <button class="login-btn" onclick="doLogin()">เข้าสู่ระบบ</button>
+    <div class="login-error" id="loginError">Password ไม่ถูกต้องครับ</div>
+  </div>
+</div>
+
+<div id="dashboard" style="display:none">
+  <header>
+    <div>
+      <div class="header-title">📊 Dashboard ร้านยา Best</div>
+      <div class="header-role" id="roleLabel"></div>
+    </div>
+    <button class="logout-btn" onclick="logout()">ออกจากระบบ</button>
+  </header>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">ออเดอร์ทั้งหมด</div>
+      <div class="stat-val" id="statTotal" style="color:var(--accent)">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">รอดำเนินการ</div>
+      <div class="stat-val" id="statWait" style="color:#E65100">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">จัดส่งแล้ว</div>
+      <div class="stat-val" id="statDone" style="color:#2E7D32">—</div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="filter-bar">
+      <select class="filter-select" id="statusFilter" onchange="renderOrders()">
+        <option value="">ทุกสถานะ</option>
+        <option value="รอดำเนินการ">รอดำเนินการ</option>
+        <option value="กำลังจัดส่ง">กำลังจัดส่ง</option>
+        <option value="จัดส่งแล้ว">จัดส่งแล้ว</option>
+        <option value="ยกเลิก">ยกเลิก</option>
+        <option value="Copy จากประวัติ">Copy จากประวัติ</option>
+      </select>
+      <span class="order-count" id="orderCount"></span>
+      <button class="refresh-btn" onclick="loadOrders()">🔄 รีเฟรช</button>
+    </div>
+    <div id="ordersContainer">
+      <div class="spinner-wrap"><div class="spinner"></div><p>กำลังโหลด...</p></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const ADMIN_URL = 'https://script.google.com/macros/s/AKfycbwWw4At7y18nnB7SWpkYAVpxebEGo8uHhk80MvubmJ8atfIVuXxOReWsTZaxVO1GCc7Jw/exec';
+const PASS_STAFF = 'best';
+const PASS_OWNER = 'tagitasarat';
+
+let currentRole = '';
+let allOrders = [];
+
+function doLogin() {
+  const pw = document.getElementById('pwInput').value;
+  if (pw === PASS_OWNER) currentRole = 'owner';
+  else if (pw === PASS_STAFF) currentRole = 'staff';
+  else { document.getElementById('loginError').style.display = 'block'; return; }
+  sessionStorage.setItem('adminRole', currentRole);
+  showDashboard();
+}
+
+function showDashboard() {
+  document.getElementById('loginWrap').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  document.getElementById('roleLabel').textContent = currentRole === 'owner' ? '👑 เจ้าของร้าน' : '👤 พนักงาน';
+  loadOrders();
+}
+
+function logout() {
+  sessionStorage.removeItem('adminRole');
+  currentRole = '';
+  document.getElementById('loginWrap').style.display = 'flex';
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('pwInput').value = '';
+}
+
+async function loadOrders() {
+  document.getElementById('ordersContainer').innerHTML = '<div class="spinner-wrap"><div class="spinner"></div><p>กำลังโหลด...</p></div>';
+  try {
+    const res = await fetch(`${ADMIN_URL}?action=getOrders`);
+    const data = await res.json();
+    allOrders = data.reverse();
+    updateStats();
+    renderOrders();
+  } catch(e) {
+    document.getElementById('ordersContainer').innerHTML = '<div class="empty">โหลดข้อมูลไม่ได้ครับ ลองรีเฟรชใหม่</div>';
+  }
+}
+
+function updateStats() {
+  document.getElementById('statTotal').textContent = allOrders.length;
+  document.getElementById('statWait').textContent = allOrders.filter(o => o.status === 'รอดำเนินการ').length;
+  document.getElementById('statDone').textContent = allOrders.filter(o => o.status === 'จัดส่งแล้ว').length;
+}
+
+function getStatusClass(s) {
+  if (s === 'รอดำเนินการ') return 's-wait';
+  if (s === 'กำลังจัดส่ง') return 's-process';
+  if (s === 'จัดส่งแล้ว') return 's-done';
+  if (s === 'ยกเลิก') return 's-cancel';
+  if (s === 'Copy จากประวัติ') return 's-repeat';
+  return 's-wait';
+}
+
+function renderOrders() {
+  const filter = document.getElementById('statusFilter').value;
+  const filtered = filter ? allOrders.filter(o => o.status === filter) : allOrders;
+  document.getElementById('orderCount').textContent = `แสดง ${filtered.length} รายการ`;
+  if (!filtered.length) {
+    document.getElementById('ordersContainer').innerHTML = '<div class="empty">ไม่มีออเดอร์ในขณะนี้</div>';
+    return;
+  }
+  const deleteBtn = currentRole === 'owner' ? `<button class="delete-btn" onclick="deleteOrder(ROW)">🗑 ลบ</button>` : '';
+  document.getElementById('ordersContainer').innerHTML = filtered.map(o => `
+    <div class="order-card" id="order-${o.row}">
+      <div class="order-head">
+        <span class="order-date">📅 ${o.date}</span>
+        <span class="status-badge ${getStatusClass(o.status)}" id="badge-${o.row}">${o.status}</span>
+      </div>
+      <div class="order-customer">👤 ${o.name}</div>
+      <div class="order-phone">📞 ${o.phone}</div>
+      <div class="order-address">📍 ${o.address}</div>
+      <div class="order-items">${o.items}</div>
+      <div class="order-footer">
+        <div class="order-total">💰 ${o.total}</div>
+        <div class="order-actions">
+          <select class="status-select" onchange="updateStatus(${o.row}, this.value)">
+            <option value="รอดำเนินการ" ${o.status==='รอดำเนินการ'?'selected':''}>รอดำเนินการ</option>
+            <option value="กำลังจัดส่ง" ${o.status==='กำลังจัดส่ง'?'selected':''}>กำลังจัดส่ง</option>
+            <option value="จัดส่งแล้ว" ${o.status==='จัดส่งแล้ว'?'selected':''}>จัดส่งแล้ว</option>
+            <option value="ยกเลิก" ${o.status==='ยกเลิก'?'selected':''}>ยกเลิก</option>
+          </select>
+          ${currentRole === 'owner' ? `<button class="delete-btn" onclick="deleteOrder(${o.row})">🗑 ลบ</button>` : ''}
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+async function updateStatus(row, status) {
+  try {
+    await fetch(`${ADMIN_URL}?action=updateStatus&row=${row}&status=${encodeURIComponent(status)}`);
+    const o = allOrders.find(x => x.row === row);
+    if (o) o.status = status;
+    updateStats();
+    const badge = document.getElementById(`badge-${row}`);
+    if (badge) { badge.className = `status-badge ${getStatusClass(status)}`; badge.textContent = status; }
+    showToast(`✅ อัปเดตเป็น "${status}" แล้วครับ`);
+  } catch(e) { showToast('❌ อัปเดตไม่ได้ครับ'); }
+}
+
+async function deleteOrder(row) {
+  if (!confirm('ยืนยันลบออเดอร์นี้?')) return;
+  try {
+    await fetch(`${ADMIN_URL}?action=deleteOrder&row=${row}`);
+    allOrders = allOrders.filter(o => o.row !== row);
+    updateStats(); renderOrders();
+    showToast('🗑 ลบออเดอร์แล้วครับ');
+  } catch(e) { showToast('❌ ลบไม่ได้ครับ'); }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+const saved = sessionStorage.getItem('adminRole');
+if (saved) { currentRole = saved; showDashboard(); }
+</script>
+
+
+</body></html>
