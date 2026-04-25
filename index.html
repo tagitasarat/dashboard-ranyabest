@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0044)file:///C:/Users/acer/Downloads/admin_2.html -->
+<!-- saved from url=(0044)file:///C:/Users/acer/Downloads/admin_3.html -->
 <html lang="th"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -311,10 +311,17 @@ function getStatusClass(s) {
 // parse date from order.date string
 function parseOrderDate(dateStr) {
   if (!dateStr) return null;
-  // ISO format from Sheets e.g. "2569-04-25T14:03:51.000Z"
   try {
-    const d = new Date(dateStr);
-    if (!isNaN(d)) return d;
+    // Thai format: "25/4/2569 21:02" → convert Buddhist year to AD
+    const thaiMatch = dateStr.toString().match(/(\d+)\/(\d+)\/(\d+)\s+(\d+):(\d+)/);
+    if (thaiMatch) {
+      const [,d,m,y,h,min] = thaiMatch;
+      const adYear = parseInt(y) - 543;
+      return new Date(adYear, parseInt(m)-1, parseInt(d), parseInt(h), parseInt(min));
+    }
+    // ISO format fallback
+    const iso = new Date(dateStr);
+    if (!isNaN(iso)) return iso;
   } catch(e) {}
   return null;
 }
