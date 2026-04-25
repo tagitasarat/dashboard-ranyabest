@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0044)file:///C:/Users/acer/Downloads/admin_5.html -->
+<!-- saved from url=(0044)file:///C:/Users/acer/Downloads/admin_6.html -->
 <html lang="th"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -208,7 +208,9 @@ header{background:var(--accent);padding:1rem 1.5rem;display:flex;align-items:cen
           <option value="30" selected="">30 วันล่าสุด</option>
           <option value="90">3 เดือนล่าสุด</option>
           <option value="all">ทั้งหมด</option>
+          <option value="custom">เลือกวันที่</option>
         </select>
+        <input class="date-input" type="date" id="statsDateFilter" style="display:none" onchange="renderStats()">
         <span class="order-count" id="statsRange"></span>
       </div>
 
@@ -518,12 +520,19 @@ async function deleteOrder(row) {
 // ── STATS ──
 function getFilteredByRange() {
   const range = document.getElementById('monthFilter').value;
+  const customDate = document.getElementById('statsDateFilter').value;
+  const dateInput = document.getElementById('statsDateFilter');
+
+  // แสดง/ซ่อน date picker
+  dateInput.style.display = range === 'custom' ? 'block' : 'none';
+
   const now = new Date();
   return allOrders.filter(o => {
     if (o.status === 'ยกเลิก') return false;
     const d = parseOrderDate(o.date);
     if (!d) return false;
     if (range === 'today') return toLocalDateStr(d) === toLocalDateStr(now);
+    if (range === 'custom') return customDate ? toLocalDateStr(d) === customDate : true;
     if (range === 'all') return true;
     const days = parseInt(range);
     const cutoff = new Date(now); cutoff.setDate(now.getDate() - days);
@@ -540,7 +549,12 @@ function parseTotal(totalStr) {
 function renderStats() {
   const filtered = getFilteredByRange();
   const range = document.getElementById('monthFilter').value;
-  const rangeLabel = {today:'วันนี้','7':'7 วันล่าสุด','30':'30 วันล่าสุด','90':'3 เดือนล่าสุด',all:'ทั้งหมด'}[range];
+  const customDate = document.getElementById('statsDateFilter').value;
+  let rangeLabel = {today:'วันนี้','7':'7 วันล่าสุด','30':'30 วันล่าสุด','90':'3 เดือนล่าสุด',all:'ทั้งหมด',custom:''}[range];
+  if (range === 'custom' && customDate) {
+    const d = new Date(customDate);
+    rangeLabel = d.toLocaleDateString('th-TH', {day:'numeric',month:'long',year:'numeric'});
+  }
   document.getElementById('statsRange').textContent = rangeLabel;
 
   const totalRevenue = filtered.reduce((s, o) => s + parseTotal(o.total), 0);
