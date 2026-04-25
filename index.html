@@ -1,87 +1,130 @@
 <!DOCTYPE html>
-<!-- saved from url=(0044)file:///C:/Users/acer/Downloads/admin_1.html -->
+<!-- saved from url=(0044)file:///C:/Users/acer/Downloads/admin_2.html -->
 <html lang="th"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ร้านยา Best — Admin Dashboard</title>
+<title>ร้านยา Best — Admin</title>
 <link href="./index_files/css2" rel="stylesheet">
 <style>
 :root {
-  --bg: #F7F5F0; --surface: #FFFFFF; --border: #E2DDD6;
-  --text: #1A1714; --text-muted: #7A746C;
-  --accent: #2D6A4F; --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
-  --red: #E53935;
+  --bg:#F7F5F0;--surface:#fff;--border:#E2DDD6;--text:#1A1714;--muted:#7A746C;
+  --accent:#2D6A4F;--accent2:#52B788;--red:#E53935;--orange:#F57C00;--blue:#1565C0;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04);
 }
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; min-height: 100vh; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
 
-.login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; }
-.login-box { background: var(--surface); border-radius: 20px; padding: 2rem; width: 100%; max-width: 360px; box-shadow: var(--shadow); }
-.login-logo { font-size: 36px; text-align: center; margin-bottom: 8px; }
-.login-title { font-size: 20px; font-weight: 600; text-align: center; margin-bottom: 4px; }
-.login-sub { font-size: 13px; color: var(--text-muted); text-align: center; margin-bottom: 1.5rem; }
-.login-input { width: 100%; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-family: inherit; font-size: 15px; outline: none; margin-bottom: 12px; }
-.login-input:focus { border-color: var(--accent); }
-.login-btn { width: 100%; padding: 12px; border: none; border-radius: 10px; background: var(--accent); color: #fff; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
-.login-error { color: var(--red); font-size: 13px; text-align: center; margin-top: 8px; display: none; }
+/* LOGIN */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem}
+.login-box{background:var(--surface);border-radius:20px;padding:2rem;width:100%;max-width:360px;box-shadow:var(--shadow)}
+.login-logo{font-size:36px;text-align:center;margin-bottom:8px}
+.login-title{font-size:20px;font-weight:600;text-align:center;margin-bottom:4px}
+.login-sub{font-size:13px;color:var(--muted);text-align:center;margin-bottom:1.5rem}
+.login-input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:inherit;font-size:15px;outline:none;margin-bottom:12px;transition:border-color .15s}
+.login-input:focus{border-color:var(--accent)}
+.login-btn{width:100%;padding:12px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer}
+.login-error{color:var(--red);font-size:13px;text-align:center;margin-top:8px;display:none}
 
-header { background: var(--accent); padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; }
-.header-title { font-size: 18px; font-weight: 600; color: #fff; }
-.header-role { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 2px; }
-.logout-btn { background: rgba(255,255,255,0.15); border: none; border-radius: 8px; padding: 6px 14px; color: #fff; font-family: inherit; font-size: 13px; cursor: pointer; }
+/* HEADER */
+header{background:var(--accent);padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.header-title{font-size:18px;font-weight:600;color:#fff}
+.header-role{font-size:12px;color:rgba(255,255,255,.7);margin-top:2px}
+.logout-btn{background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:6px 14px;color:#fff;font-family:inherit;font-size:13px;cursor:pointer}
 
-.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 1.25rem 1.5rem 0; max-width: 900px; margin: 0 auto; }
-.stat-card { background: var(--surface); border-radius: 14px; padding: 1rem; box-shadow: var(--shadow); }
-.stat-label { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
-.stat-val { font-size: 22px; font-weight: 600; }
+/* TABS */
+.tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.5rem}
+.tab{padding:12px 16px;font-size:14px;font-weight:500;cursor:pointer;border-bottom:2.5px solid transparent;color:var(--muted);transition:all .15s;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-content{display:none}.tab-content.active{display:block}
 
-.content { max-width: 900px; margin: 1.25rem auto; padding: 0 1.5rem 3rem; }
-.filter-bar { display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; }
-.filter-select { padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 13px; background: var(--surface); outline: none; cursor: pointer; }
-.refresh-btn { padding: 8px 14px; border: 1.5px solid var(--accent); border-radius: 8px; background: transparent; color: var(--accent); font-family: inherit; font-size: 13px; cursor: pointer; margin-left: auto; }
-.refresh-btn:hover { background: var(--accent); color: #fff; }
-.order-count { font-size: 13px; color: var(--text-muted); }
+/* STATS CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:1.25rem 1.5rem 0;max-width:960px;margin:0 auto}
+.stat-card{background:var(--surface);border-radius:14px;padding:1rem;box-shadow:var(--shadow)}
+.stat-label{font-size:12px;color:var(--muted);margin-bottom:4px}
+.stat-val{font-size:22px;font-weight:600}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:2px}
 
-.order-card { background: var(--surface); border-radius: 14px; border: 1px solid var(--border); padding: 1rem 1.25rem; margin-bottom: 10px; box-shadow: var(--shadow); }
-.order-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px; }
-.order-date { font-size: 12px; color: var(--text-muted); }
-.order-customer { font-size: 15px; font-weight: 500; margin-bottom: 2px; }
-.order-phone { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
-.order-address { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; line-height: 1.5; }
-.order-items { font-size: 13px; background: #F7F5F0; border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; line-height: 1.8; white-space: pre-line; }
-.order-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
-.order-total { font-size: 16px; font-weight: 600; color: var(--accent); }
-.order-actions { display: flex; gap: 6px; align-items: center; }
+/* CONTENT */
+.content{max-width:960px;margin:1.25rem auto;padding:0 1.5rem 3rem}
 
-.status-badge { display: inline-block; padding: 3px 12px; border-radius: 99px; font-size: 12px; font-weight: 500; }
-.s-wait    { background: #FFF3E0; color: #E65100; }
-.s-process { background: #E3F2FD; color: #1565C0; }
-.s-done    { background: #E8F5E9; color: #2E7D32; }
-.s-cancel  { background: #FFEBEE; color: #C62828; }
-.s-repeat  { background: #F3E5F5; color: #6A1B9A; }
+/* FILTER BAR */
+.filter-bar{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;align-items:center}
+.filter-select,.date-input{padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:var(--surface);outline:none;cursor:pointer}
+.refresh-btn{padding:8px 14px;border:1.5px solid var(--accent);border-radius:8px;background:transparent;color:var(--accent);font-family:inherit;font-size:13px;cursor:pointer;margin-left:auto}
+.refresh-btn:hover{background:var(--accent);color:#fff}
+.order-count{font-size:13px;color:var(--muted)}
 
-.status-select { padding: 6px 10px; border: 1.5px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 12px; background: var(--surface); outline: none; cursor: pointer; }
-.delete-btn { padding: 6px 12px; border: 1.5px solid #FFCDD2; border-radius: 8px; background: transparent; color: var(--red); font-family: inherit; font-size: 12px; cursor: pointer; }
-.delete-btn:hover { background: var(--red); color: #fff; border-color: var(--red); }
+/* ORDER CARD */
+.order-card{background:var(--surface);border-radius:14px;border:1px solid var(--border);padding:1rem 1.25rem;margin-bottom:10px;box-shadow:var(--shadow)}
+.order-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px}
+.order-date-text{font-size:12px;color:var(--muted)}
+.order-customer{font-size:15px;font-weight:500;margin-bottom:2px}
+.order-phone{font-size:13px;color:var(--muted);margin-bottom:4px}
+.order-address{font-size:13px;color:var(--muted);margin-bottom:8px;line-height:1.5}
+.order-items{font-size:13px;background:#F7F5F0;border-radius:8px;padding:8px 10px;margin-bottom:8px;line-height:1.8;white-space:pre-line}
+.order-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.order-total{font-size:16px;font-weight:600;color:var(--accent)}
+.order-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 
-.empty { text-align: center; padding: 3rem; color: var(--text-muted); font-size: 14px; }
-.spinner-wrap { text-align: center; padding: 3rem; }
-.spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
-@keyframes spin { to { transform: rotate(360deg); } }
+/* BADGES */
+.status-badge{display:inline-block;padding:3px 12px;border-radius:99px;font-size:12px;font-weight:500}
+.s-wait{background:#FFF3E0;color:#E65100}
+.s-done{background:#E8F5E9;color:#2E7D32}
+.s-cancel{background:#FFEBEE;color:#C62828}
+.s-repeat{background:#F3E5F5;color:#6A1B9A}
 
-.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1A1714; color: #fff; padding: 10px 20px; border-radius: 99px; font-size: 13px; opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 300; white-space: nowrap; }
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+/* STATUS SELECT */
+.status-select{padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:12px;background:var(--surface);outline:none;cursor:pointer}
+.delete-btn{padding:6px 12px;border:1.5px solid #FFCDD2;border-radius:8px;background:transparent;color:var(--red);font-family:inherit;font-size:12px;cursor:pointer}
+.delete-btn:hover{background:var(--red);color:#fff;border-color:var(--red)}
 
-@media (max-width: 600px) {
-  .stats-grid { padding: 1rem 1rem 0; gap: 8px; }
-  .stat-val { font-size: 18px; }
-  .content { padding: 0 1rem 3rem; }
-  header { padding: 0.875rem 1rem; }
+/* CHART */
+.chart-wrap{background:var(--surface);border-radius:14px;border:1px solid var(--border);padding:1.25rem;margin-bottom:16px;box-shadow:var(--shadow)}
+.chart-title{font-size:14px;font-weight:600;margin-bottom:1rem;color:var(--text)}
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:140px;border-bottom:1px solid var(--border);padding-bottom:4px;overflow-x:auto}
+.bar-item{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:36px;flex:1}
+.bar{background:var(--accent2);border-radius:4px 4px 0 0;width:100%;transition:height .3s;min-height:2px;position:relative}
+.bar:hover{background:var(--accent)}
+.bar-val{font-size:10px;color:var(--muted);text-align:center}
+.bar-label{font-size:10px;color:var(--muted);text-align:center;margin-top:4px}
+
+/* TOP TABLE */
+.top-table{width:100%;border-collapse:collapse;font-size:13px}
+.top-table th{background:#F2EFE9;padding:8px 12px;text-align:left;font-weight:600;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border)}
+.top-table td{padding:10px 12px;border-bottom:1px solid #F0EDE8}
+.top-table tr:last-child td{border-bottom:none}
+.rank{font-weight:700;color:var(--accent);width:24px}
+
+/* SUMMARY ROW */
+.summary-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.summary-card{background:var(--surface);border-radius:12px;border:1px solid var(--border);padding:1rem;box-shadow:var(--shadow);text-align:center}
+.summary-label{font-size:12px;color:var(--muted);margin-bottom:4px}
+.summary-val{font-size:20px;font-weight:600;color:var(--accent)}
+
+/* EMPTY / SPINNER */
+.empty{text-align:center;padding:3rem;color:var(--muted);font-size:14px}
+.spinner-wrap{text-align:center;padding:3rem}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 1rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#1A1714;color:#fff;padding:10px 20px;border-radius:99px;font-size:13px;opacity:0;transition:all .3s;pointer-events:none;z-index:300;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media(max-width:600px){
+  .stats-grid{grid-template-columns:repeat(2,1fr);padding:1rem 1rem 0}
+  .stat-val{font-size:18px}
+  .content{padding:0 1rem 3rem}
+  header{padding:.875rem 1rem}
+  .summary-row{grid-template-columns:repeat(3,1fr);gap:8px}
+  .summary-val{font-size:16px}
+  .tabs{padding:0 1rem;overflow-x:auto}
 }
 </style>
 </head>
 <body>
 
+<!-- LOGIN -->
 <div class="login-wrap" id="loginWrap">
   <div class="login-box">
     <div class="login-logo">💊</div>
@@ -93,6 +136,7 @@ header { background: var(--accent); padding: 1rem 1.5rem; display: flex; align-i
   </div>
 </div>
 
+<!-- DASHBOARD -->
 <div id="dashboard" style="display:none">
   <header>
     <div>
@@ -102,36 +146,84 @@ header { background: var(--accent); padding: 1rem 1.5rem; display: flex; align-i
     <button class="logout-btn" onclick="logout()">ออกจากระบบ</button>
   </header>
 
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-label">ออเดอร์ทั้งหมด</div>
-      <div class="stat-val" id="statTotal" style="color:var(--accent)">—</div>
+  <!-- TABS -->
+  <div class="tabs" id="tabBar">
+    <button class="tab active" onclick="switchTab(&#39;orders&#39;)">📋 ออเดอร์</button>
+    <button class="tab" onclick="switchTab(&#39;stats&#39;)" id="statsTab" style="display:none">📊 สถิติ</button>
+  </div>
+
+  <!-- ORDERS TAB -->
+  <div class="tab-content active" id="tab-orders">
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">ออเดอร์ทั้งหมด</div><div class="stat-val" id="statTotal" style="color:var(--accent)">—</div></div>
+      <div class="stat-card"><div class="stat-label">รอดำเนินการ</div><div class="stat-val" id="statWait" style="color:#E65100">—</div></div>
+      <div class="stat-card"><div class="stat-label">จัดส่งแล้ว</div><div class="stat-val" id="statDone" style="color:#2E7D32">—</div></div>
+      <div class="stat-card"><div class="stat-label">ยกเลิก</div><div class="stat-val" id="statCancel" style="color:#C62828">—</div></div>
     </div>
-    <div class="stat-card">
-      <div class="stat-label">รอดำเนินการ</div>
-      <div class="stat-val" id="statWait" style="color:#E65100">—</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">จัดส่งแล้ว</div>
-      <div class="stat-val" id="statDone" style="color:#2E7D32">—</div>
+    <div class="content">
+      <div class="filter-bar">
+        <input class="date-input" type="date" id="dateFilter" onchange="renderOrders()">
+        <select class="filter-select" id="statusFilter" onchange="renderOrders()">
+          <option value="">ทุกสถานะ</option>
+          <option value="รอดำเนินการ">รอดำเนินการ</option>
+          <option value="จัดส่งแล้ว">จัดส่งแล้ว</option>
+          <option value="ยกเลิก">ยกเลิก</option>
+          <option value="Copy จากประวัติ">Copy จากประวัติ</option>
+        </select>
+        <span class="order-count" id="orderCount"></span>
+        <button class="refresh-btn" onclick="loadOrders()">🔄 รีเฟรช</button>
+      </div>
+      <div id="ordersContainer"><div class="spinner-wrap"><div class="spinner"></div><p>กำลังโหลด...</p></div></div>
     </div>
   </div>
 
-  <div class="content">
-    <div class="filter-bar">
-      <select class="filter-select" id="statusFilter" onchange="renderOrders()">
-        <option value="">ทุกสถานะ</option>
-        <option value="รอดำเนินการ">รอดำเนินการ</option>
-        <option value="กำลังจัดส่ง">กำลังจัดส่ง</option>
-        <option value="จัดส่งแล้ว">จัดส่งแล้ว</option>
-        <option value="ยกเลิก">ยกเลิก</option>
-        <option value="Copy จากประวัติ">Copy จากประวัติ</option>
-      </select>
-      <span class="order-count" id="orderCount"></span>
-      <button class="refresh-btn" onclick="loadOrders()">🔄 รีเฟรช</button>
-    </div>
-    <div id="ordersContainer">
-      <div class="spinner-wrap"><div class="spinner"></div><p>กำลังโหลด...</p></div>
+  <!-- STATS TAB (owner only) -->
+  <div class="tab-content" id="tab-stats">
+    <div class="content" style="padding-top:1.25rem">
+
+      <!-- DATE RANGE -->
+      <div class="filter-bar" style="margin-bottom:1.25rem">
+        <select class="filter-select" id="monthFilter" onchange="renderStats()">
+          <option value="today">วันนี้</option>
+          <option value="7">7 วันล่าสุด</option>
+          <option value="30" selected="">30 วันล่าสุด</option>
+          <option value="90">3 เดือนล่าสุด</option>
+          <option value="all">ทั้งหมด</option>
+        </select>
+        <span class="order-count" id="statsRange"></span>
+      </div>
+
+      <!-- SUMMARY -->
+      <div class="summary-row">
+        <div class="summary-card"><div class="summary-label">ออเดอร์</div><div class="summary-val" id="sumOrders">—</div></div>
+        <div class="summary-card"><div class="summary-label">ยอดขายรวม</div><div class="summary-val" id="sumRevenue">—</div></div>
+        <div class="summary-card"><div class="summary-label">เฉลี่ย/ออเดอร์</div><div class="summary-val" id="sumAvg">—</div></div>
+      </div>
+
+      <!-- DAILY CHART -->
+      <div class="chart-wrap">
+        <div class="chart-title">📈 จำนวนออเดอร์รายวัน</div>
+        <div class="bar-chart" id="dailyChart"></div>
+      </div>
+
+      <!-- TOP CUSTOMERS BY FREQUENCY -->
+      <div class="chart-wrap">
+        <div class="chart-title">🏆 ลูกค้าที่สั่งบ่อยที่สุด</div>
+        <table class="top-table">
+          <thead><tr><th>#</th><th>ชื่อ</th><th>เบอร์</th><th style="text-align:right">จำนวนออเดอร์</th></tr></thead>
+          <tbody id="topFreq"></tbody>
+        </table>
+      </div>
+
+      <!-- TOP CUSTOMERS BY VALUE -->
+      <div class="chart-wrap">
+        <div class="chart-title">💰 ลูกค้าที่ซื้อมูลค่าสูงที่สุด</div>
+        <table class="top-table">
+          <thead><tr><th>#</th><th>ชื่อ</th><th>เบอร์</th><th style="text-align:right">ยอดรวม</th></tr></thead>
+          <tbody id="topValue"></tbody>
+        </table>
+      </div>
+
     </div>
   </div>
 </div>
@@ -146,6 +238,7 @@ const PASS_OWNER = 'tagitasarat';
 let currentRole = '';
 let allOrders = [];
 
+// ── LOGIN ──
 function doLogin() {
   const pw = document.getElementById('pwInput').value;
   if (pw === PASS_OWNER) currentRole = 'owner';
@@ -159,6 +252,11 @@ function showDashboard() {
   document.getElementById('loginWrap').style.display = 'none';
   document.getElementById('dashboard').style.display = 'block';
   document.getElementById('roleLabel').textContent = currentRole === 'owner' ? '👑 เจ้าของร้าน' : '👤 พนักงาน';
+  if (currentRole === 'owner') {
+    document.getElementById('statsTab').style.display = 'inline-block';
+  }
+  // set today as default date filter
+  document.getElementById('dateFilter').value = new Date().toISOString().split('T')[0];
   loadOrders();
 }
 
@@ -170,6 +268,16 @@ function logout() {
   document.getElementById('pwInput').value = '';
 }
 
+// ── TABS ──
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  event.target.classList.add('active');
+  if (tab === 'stats') renderStats();
+}
+
+// ── LOAD ──
 async function loadOrders() {
   document.getElementById('ordersContainer').innerHTML = '<div class="spinner-wrap"><div class="spinner"></div><p>กำลังโหลด...</p></div>';
   try {
@@ -183,34 +291,61 @@ async function loadOrders() {
   }
 }
 
+// ── STATS CARDS ──
 function updateStats() {
   document.getElementById('statTotal').textContent = allOrders.length;
   document.getElementById('statWait').textContent = allOrders.filter(o => o.status === 'รอดำเนินการ').length;
   document.getElementById('statDone').textContent = allOrders.filter(o => o.status === 'จัดส่งแล้ว').length;
+  document.getElementById('statCancel').textContent = allOrders.filter(o => o.status === 'ยกเลิก').length;
 }
 
+// ── STATUS ──
 function getStatusClass(s) {
   if (s === 'รอดำเนินการ') return 's-wait';
-  if (s === 'กำลังจัดส่ง') return 's-process';
   if (s === 'จัดส่งแล้ว') return 's-done';
   if (s === 'ยกเลิก') return 's-cancel';
   if (s === 'Copy จากประวัติ') return 's-repeat';
   return 's-wait';
 }
 
+// parse date from order.date string
+function parseOrderDate(dateStr) {
+  if (!dateStr) return null;
+  // ISO format from Sheets e.g. "2569-04-25T14:03:51.000Z"
+  try {
+    const d = new Date(dateStr);
+    if (!isNaN(d)) return d;
+  } catch(e) {}
+  return null;
+}
+
+function toLocalDateStr(d) {
+  if (!d) return '';
+  return d.toLocaleDateString('en-CA'); // YYYY-MM-DD
+}
+
+// ── RENDER ORDERS ──
 function renderOrders() {
-  const filter = document.getElementById('statusFilter').value;
-  const filtered = filter ? allOrders.filter(o => o.status === filter) : allOrders;
+  const statusFilter = document.getElementById('statusFilter').value;
+  const dateFilter = document.getElementById('dateFilter').value;
+
+  let filtered = allOrders.filter(o => {
+    const matchStatus = !statusFilter || o.status === statusFilter;
+    const matchDate = !dateFilter || toLocalDateStr(parseOrderDate(o.date)) === dateFilter;
+    return matchStatus && matchDate;
+  });
+
   document.getElementById('orderCount').textContent = `แสดง ${filtered.length} รายการ`;
+
   if (!filtered.length) {
-    document.getElementById('ordersContainer').innerHTML = '<div class="empty">ไม่มีออเดอร์ในขณะนี้</div>';
+    document.getElementById('ordersContainer').innerHTML = '<div class="empty">ไม่มีออเดอร์ในช่วงนี้</div>';
     return;
   }
-  const deleteBtn = currentRole === 'owner' ? `<button class="delete-btn" onclick="deleteOrder(ROW)">🗑 ลบ</button>` : '';
+
   document.getElementById('ordersContainer').innerHTML = filtered.map(o => `
     <div class="order-card" id="order-${o.row}">
       <div class="order-head">
-        <span class="order-date">📅 ${o.date}</span>
+        <span class="order-date-text">📅 ${formatThaiDate(parseOrderDate(o.date))}</span>
         <span class="status-badge ${getStatusClass(o.status)}" id="badge-${o.row}">${o.status}</span>
       </div>
       <div class="order-customer">👤 ${o.name}</div>
@@ -222,7 +357,6 @@ function renderOrders() {
         <div class="order-actions">
           <select class="status-select" onchange="updateStatus(${o.row}, this.value)">
             <option value="รอดำเนินการ" ${o.status==='รอดำเนินการ'?'selected':''}>รอดำเนินการ</option>
-            <option value="กำลังจัดส่ง" ${o.status==='กำลังจัดส่ง'?'selected':''}>กำลังจัดส่ง</option>
             <option value="จัดส่งแล้ว" ${o.status==='จัดส่งแล้ว'?'selected':''}>จัดส่งแล้ว</option>
             <option value="ยกเลิก" ${o.status==='ยกเลิก'?'selected':''}>ยกเลิก</option>
           </select>
@@ -232,6 +366,12 @@ function renderOrders() {
     </div>`).join('');
 }
 
+function formatThaiDate(d) {
+  if (!d) return '—';
+  return d.toLocaleString('th-TH', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+
+// ── UPDATE STATUS ──
 async function updateStatus(row, status) {
   try {
     await fetch(`${ADMIN_URL}?action=updateStatus&row=${row}&status=${encodeURIComponent(status)}`);
@@ -244,6 +384,7 @@ async function updateStatus(row, status) {
   } catch(e) { showToast('❌ อัปเดตไม่ได้ครับ'); }
 }
 
+// ── DELETE ──
 async function deleteOrder(row) {
   if (!confirm('ยืนยันลบออเดอร์นี้?')) return;
   try {
@@ -254,12 +395,102 @@ async function deleteOrder(row) {
   } catch(e) { showToast('❌ ลบไม่ได้ครับ'); }
 }
 
+// ── STATS ──
+function getFilteredByRange() {
+  const range = document.getElementById('monthFilter').value;
+  const now = new Date();
+  return allOrders.filter(o => {
+    if (o.status === 'ยกเลิก') return false;
+    const d = parseOrderDate(o.date);
+    if (!d) return false;
+    if (range === 'today') return toLocalDateStr(d) === toLocalDateStr(now);
+    if (range === 'all') return true;
+    const days = parseInt(range);
+    const cutoff = new Date(now); cutoff.setDate(now.getDate() - days);
+    return d >= cutoff;
+  });
+}
+
+function parseTotal(totalStr) {
+  if (typeof totalStr === 'number') return totalStr;
+  const match = (totalStr || '').toString().replace(/,/g,'').match(/[\d.]+/);
+  return match ? parseFloat(match[0]) : 0;
+}
+
+function renderStats() {
+  const filtered = getFilteredByRange();
+  const range = document.getElementById('monthFilter').value;
+  const rangeLabel = {today:'วันนี้','7':'7 วันล่าสุด','30':'30 วันล่าสุด','90':'3 เดือนล่าสุด',all:'ทั้งหมด'}[range];
+  document.getElementById('statsRange').textContent = rangeLabel;
+
+  const totalRevenue = filtered.reduce((s, o) => s + parseTotal(o.total), 0);
+  const avgOrder = filtered.length ? totalRevenue / filtered.length : 0;
+
+  document.getElementById('sumOrders').textContent = filtered.length;
+  document.getElementById('sumRevenue').textContent = totalRevenue.toLocaleString() + ' ฿';
+  document.getElementById('sumAvg').textContent = Math.round(avgOrder).toLocaleString() + ' ฿';
+
+  // ── DAILY CHART ──
+  const dayMap = {};
+  filtered.forEach(o => {
+    const d = parseOrderDate(o.date);
+    if (!d) return;
+    const key = toLocalDateStr(d);
+    dayMap[key] = (dayMap[key] || 0) + 1;
+  });
+  const days = Object.keys(dayMap).sort().slice(-30);
+  const maxVal = Math.max(...days.map(d => dayMap[d]), 1);
+
+  document.getElementById('dailyChart').innerHTML = days.length
+    ? days.map(day => {
+        const count = dayMap[day];
+        const pct = Math.round((count / maxVal) * 100);
+        const label = new Date(day).toLocaleDateString('th-TH', {day:'numeric',month:'short'});
+        return `<div class="bar-item">
+          <div class="bar-val">${count}</div>
+          <div class="bar" style="height:${pct}%"></div>
+          <div class="bar-label">${label}</div>
+        </div>`;
+      }).join('')
+    : '<div class="empty" style="width:100%">ไม่มีข้อมูล</div>';
+
+  // ── TOP FREQ ──
+  const freqMap = {};
+  filtered.forEach(o => {
+    const key = `${o.name}||${o.phone}`;
+    freqMap[key] = (freqMap[key] || 0) + 1;
+  });
+  const topFreq = Object.entries(freqMap).sort((a,b) => b[1]-a[1]).slice(0,5);
+  const medals = ['🥇','🥈','🥉','4️⃣','5️⃣'];
+  document.getElementById('topFreq').innerHTML = topFreq.length
+    ? topFreq.map(([key,cnt], i) => {
+        const [name, phone] = key.split('||');
+        return `<tr><td class="rank">${medals[i]||i+1}</td><td>${name}</td><td>${phone}</td><td style="text-align:right;font-weight:600;color:var(--accent)">${cnt} ออเดอร์</td></tr>`;
+      }).join('')
+    : '<tr><td colspan="4" class="empty">ไม่มีข้อมูล</td></tr>';
+
+  // ── TOP VALUE ──
+  const valMap = {};
+  filtered.forEach(o => {
+    const key = `${o.name}||${o.phone}`;
+    valMap[key] = (valMap[key] || 0) + parseTotal(o.total);
+  });
+  const topVal = Object.entries(valMap).sort((a,b) => b[1]-a[1]).slice(0,5);
+  document.getElementById('topValue').innerHTML = topVal.length
+    ? topVal.map(([key,val], i) => {
+        const [name, phone] = key.split('||');
+        return `<tr><td class="rank">${medals[i]||i+1}</td><td>${name}</td><td>${phone}</td><td style="text-align:right;font-weight:600;color:var(--accent)">${val.toLocaleString()} ฿</td></tr>`;
+      }).join('')
+    : '<tr><td colspan="4" class="empty">ไม่มีข้อมูล</td></tr>';
+}
+
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
+// Auto login
 const saved = sessionStorage.getItem('adminRole');
 if (saved) { currentRole = saved; showDashboard(); }
 </script>
