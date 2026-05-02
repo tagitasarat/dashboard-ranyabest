@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0044)file:///C:/Users/acer/Downloads/admin_6.html -->
+<!-- saved from url=(0044)file:///C:/Users/acer/Downloads/admin_1.html -->
 <html lang="th"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -112,7 +112,30 @@ header{background:var(--accent);padding:1rem 1.5rem;display:flex;align-items:cen
 .selectable .order-check { display:block; }
 .selectable .order-card { padding-left:2.5rem; }
 .order-card.selected { border-color:var(--accent); background:#F0FAF4; }
-.spinner-wrap{text-align:center;padding:3rem}
+.edit-btn{padding:6px 12px;border:1.5px solid var(--accent);border-radius:8px;background:transparent;color:var(--accent);font-family:inherit;font-size:12px;cursor:pointer}
+.edit-btn:hover{background:var(--accent);color:#fff}
+
+/* EDIT ORDER POPUP */
+.edit-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity .25s}
+.edit-overlay.open{opacity:1;pointer-events:all}
+.edit-box{background:var(--surface);border-radius:16px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.edit-head{padding:1rem 1.25rem .75rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--surface);z-index:1}
+.edit-head h3{font-size:16px;font-weight:600}
+.edit-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)}
+.edit-body{padding:1.25rem}
+.edit-item-row{display:grid;grid-template-columns:1fr 80px 90px 36px;gap:6px;align-items:center;margin-bottom:8px}
+.edit-item-name{font-size:13px;padding:6px 8px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;background:var(--surface);color:var(--text);width:100%}
+.edit-item-qty{font-size:13px;padding:6px 8px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;text-align:center;width:100%}
+.edit-item-price{font-size:13px;padding:6px 8px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;text-align:right;width:100%}
+.edit-item-del{background:none;border:none;color:var(--red);font-size:18px;cursor:pointer;padding:0 4px}
+.edit-total{font-size:15px;font-weight:600;color:var(--accent);text-align:right;margin:8px 0 12px}
+.edit-add-row{display:flex;gap:6px;margin-bottom:12px}
+.edit-add-input{flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px}
+.edit-add-btn{padding:8px 12px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-family:inherit;font-size:13px;cursor:pointer}
+.edit-footer{display:flex;gap:8px}
+.edit-save-btn{flex:1;padding:11px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.edit-cancel-btn{padding:11px 16px;border:1.5px solid var(--border);border-radius:10px;background:transparent;color:var(--muted);font-family:inherit;font-size:14px;cursor:pointer}
+.edit-col-label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
 .spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 1rem}
 @keyframes spin{to{transform:rotate(360deg)}}
 
@@ -249,10 +272,44 @@ header{background:var(--accent);padding:1rem 1.5rem;display:flex;align-items:cen
   </div>
 </div>
 
+<!-- EDIT ORDER POPUP -->
+<div class="edit-overlay" id="editOverlay">
+  <div class="edit-box">
+    <div class="edit-head">
+      <h3>✏️ แก้ไขรายการออเดอร์</h3>
+      <button class="edit-close" onclick="closeEditOrder()">✕</button>
+    </div>
+    <div class="edit-body">
+      <div style="display:grid;grid-template-columns:1fr 80px 90px 36px;gap:6px;margin-bottom:6px">
+        <span class="edit-col-label">ชื่อยา</span>
+        <span class="edit-col-label" style="text-align:center">จำนวน</span>
+        <span class="edit-col-label" style="text-align:right">ราคา (฿)</span>
+        <span></span>
+      </div>
+      <div id="editItemsList"></div>
+      <div class="edit-total" id="editTotal"></div>
+
+      <!-- เพิ่มรายการใหม่ -->
+      <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">เพิ่มรายการ</div>
+      <div class="edit-add-row">
+        <input class="edit-add-input" id="addItemName" placeholder="ชื่อยา">
+        <input class="edit-add-input" id="addItemQty" placeholder="จำนวน" type="number" min="1" style="width:70px">
+        <input class="edit-add-input" id="addItemPrice" placeholder="ราคา" type="number" min="0" style="width:90px">
+        <button class="edit-add-btn" onclick="addEditItem()">+ เพิ่ม</button>
+      </div>
+
+      <div class="edit-footer">
+        <button class="edit-cancel-btn" onclick="closeEditOrder()">ยกเลิก</button>
+        <button class="edit-save-btn" onclick="saveEditOrder()">💾 บันทึก</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
-const ADMIN_URL = 'https://script.google.com/macros/s/AKfycbwWw4At7y18nnB7SWpkYAVpxebEGo8uHhk80MvubmJ8atfIVuXxOReWsTZaxVO1GCc7Jw/exec';
+const ADMIN_URL = 'https://script.google.com/macros/s/AKfycbyeLUOvqhsO6gJbNL0pHK4pYpHi0IoVSWEWplqDbqMT2j94MvN4aI9_LO_lcksrfgvh8A/exec';
 const PASS_STAFF = 'best';
 const PASS_OWNER = 'tagitasarat';
 
@@ -273,10 +330,17 @@ function showDashboard() {
   document.getElementById('loginWrap').style.display = 'none';
   document.getElementById('dashboard').style.display = 'block';
   document.getElementById('roleLabel').textContent = currentRole === 'owner' ? '👑 เจ้าของร้าน' : '👤 พนักงาน';
+  const statsTab = document.getElementById('statsTab');
   if (currentRole === 'owner') {
-    document.getElementById('statsTab').style.display = 'inline-block';
+    statsTab.style.display = 'inline-block';
+  } else {
+    statsTab.style.display = 'none';
+    // ถ้าอยู่หน้าสถิติ ให้กลับมาหน้าออเดอร์
+    document.getElementById('tab-stats').classList.remove('active');
+    document.getElementById('tab-orders').classList.add('active');
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelector('.tab').classList.add('active');
   }
-  // set today as default date filter
   document.getElementById('dateFilter').value = new Date().toISOString().split('T')[0];
   loadOrders();
 }
@@ -406,6 +470,7 @@ function renderOrders() {
       <div class="order-footer">
         ${totalDisplay}
         <div class="order-actions">
+          <button class="edit-btn" onclick="event.stopPropagation();openEditOrder(${o.row})">✏️ แก้ไข</button>
           <select class="status-select" onchange="updateStatus(${o.row}, this.value)">
             <option value="รอดำเนินการ" ${o.status==='รอดำเนินการ'?'selected':''}>รอดำเนินการ</option>
             <option value="จัดส่งแล้ว" ${o.status==='จัดส่งแล้ว'?'selected':''}>จัดส่งแล้ว</option>
@@ -491,6 +556,105 @@ async function bulkUpdateStatus(status) {
   updateStats();
   renderOrders();
   showToast(`✅ อัปเดต ${rows.length} ออเดอร์ เป็น "${status}" แล้วครับ`);
+}
+
+// ── EDIT ORDER ──
+let editingRow = null;
+let editItems = []; // [{name, qty, price}]
+
+function parseItems(itemsStr) {
+  // parse "1. ชื่อยา x2 กล่อง = 100 ฿\n2. ..."
+  const lines = itemsStr.split('\n').filter(l => l.trim());
+  return lines.map(line => {
+    // รูปแบบ: "1. ชื่อยา x2 หน่วย = 100 ฿" หรือ "1. ชื่อยา x2 หน่วย"
+    const m = line.match(/^\d+\.\s+(.+?)\s+x(\d+)\s+\S+(?:\s+=\s+([\d,]+)\s+฿)?/);
+    if (m) {
+      return {
+        name: m[1].trim(),
+        qty: parseInt(m[2]) || 1,
+        price: m[3] ? parseFloat(m[3].replace(/,/g,'')) : 0
+      };
+    }
+    // fallback
+    return { name: line.replace(/^\d+\.\s+/, '').trim(), qty: 1, price: 0 };
+  }).filter(i => i.name);
+}
+
+function calcEditTotal() {
+  return editItems.reduce((s, i) => s + (i.price * i.qty), 0);
+}
+
+function renderEditItems() {
+  const list = document.getElementById('editItemsList');
+  list.innerHTML = editItems.map((item, idx) => `
+    <div class="edit-item-row" id="edit-row-${idx}">
+      <input class="edit-item-name" value="${item.name.replace(/"/g,'&quot;')}" onchange="editItems[${idx}].name=this.value">
+      <input class="edit-item-qty" type="number" value="${item.qty}" min="1" onchange="editItems[${idx}].qty=parseInt(this.value)||1;updateEditTotal()">
+      <input class="edit-item-price" type="number" value="${item.price}" min="0" onchange="editItems[${idx}].price=parseFloat(this.value)||0;updateEditTotal()">
+      <button class="edit-item-del" onclick="removeEditItem(${idx})">🗑</button>
+    </div>`).join('');
+  updateEditTotal();
+}
+
+function updateEditTotal() {
+  const total = calcEditTotal();
+  document.getElementById('editTotal').textContent = `ยอดรวม: ${total.toLocaleString()} ฿`;
+}
+
+function removeEditItem(idx) {
+  editItems.splice(idx, 1);
+  renderEditItems();
+}
+
+function addEditItem() {
+  const name  = document.getElementById('addItemName').value.trim();
+  const qty   = parseInt(document.getElementById('addItemQty').value) || 1;
+  const price = parseFloat(document.getElementById('addItemPrice').value) || 0;
+  if (!name) { showToast('กรุณาใส่ชื่อยาครับ'); return; }
+  editItems.push({ name, qty, price });
+  renderEditItems();
+  document.getElementById('addItemName').value = '';
+  document.getElementById('addItemQty').value = '';
+  document.getElementById('addItemPrice').value = '';
+}
+
+function openEditOrder(row) {
+  const order = allOrders.find(o => o.row === row);
+  if (!order) return;
+  editingRow = row;
+  editItems = parseItems(order.items);
+  renderEditItems();
+  document.getElementById('editOverlay').classList.add('open');
+}
+
+function closeEditOrder() {
+  document.getElementById('editOverlay').classList.remove('open');
+  editingRow = null;
+  editItems = [];
+}
+
+async function saveEditOrder() {
+  if (!editingRow) return;
+  const order = allOrders.find(o => o.row === editingRow);
+  if (!order) return;
+
+  // สร้าง items text ใหม่
+  const newItemsText = editItems.map((item, i) =>
+    `${i+1}. ${item.name} x${item.qty} ${order.items.match(/x\d+\s+(\S+)/)?.[1] || 'รายการ'} = ${(item.price * item.qty).toLocaleString()} ฿`
+  ).join('\n');
+  const newTotal = calcEditTotal().toLocaleString() + ' ฿';
+
+  try {
+    await fetch(`${ADMIN_URL}?action=updateItems&row=${editingRow}&items=${encodeURIComponent(newItemsText)}&total=${encodeURIComponent(newTotal)}`);
+    // อัปเดต local
+    order.items = newItemsText;
+    order.total = newTotal;
+    closeEditOrder();
+    renderOrders();
+    showToast('✅ บันทึกรายการแล้วครับ');
+  } catch(e) {
+    showToast('❌ บันทึกไม่ได้ครับ ลองใหม่');
+  }
 }
 
 // ── UPDATE STATUS ──
