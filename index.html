@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0044)file:///C:/Users/acer/Downloads/admin_1.html -->
+<!-- saved from url=(0044)file:///C:/Users/acer/Downloads/admin_2.html -->
 <html lang="th"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -195,6 +195,7 @@ header{background:var(--accent);padding:1rem 1.5rem;display:flex;align-items:cen
     <div class="content">
       <div class="filter-bar">
         <input class="date-input" type="date" id="dateFilter" onchange="renderOrders()">
+        <button class="refresh-btn" style="margin-left:0;padding:8px 10px" onclick="document.getElementById(&#39;dateFilter&#39;).value=&#39;&#39;;renderOrders()" title="ล้างวันที่">✕ ล้างวันที่</button>
         <select class="filter-select" id="statusFilter" onchange="renderOrders()">
           <option value="">ทุกสถานะ</option>
           <option value="รอดำเนินการ">รอดำเนินการ</option>
@@ -341,7 +342,7 @@ function showDashboard() {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelector('.tab').classList.add('active');
   }
-  document.getElementById('dateFilter').value = new Date().toISOString().split('T')[0];
+  document.getElementById('dateFilter').value = '';
   loadOrders();
 }
 
