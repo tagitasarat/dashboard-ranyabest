@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0044)file:///C:/Users/acer/Downloads/admin_2.html -->
+<!-- saved from url=(0044)file:///C:/Users/acer/Downloads/admin_5.html -->
 <html lang="th"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -140,6 +140,44 @@ header{background:var(--accent);padding:1rem 1.5rem;display:flex;align-items:cen
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* TOAST */
+/* INVENTORY */
+.inv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.25rem}
+.inv-card{background:var(--surface);border-radius:14px;border:1px solid var(--border);padding:1rem;box-shadow:var(--shadow)}
+.inv-card-label{font-size:12px;color:var(--muted);margin-bottom:4px}
+.inv-card-val{font-size:22px;font-weight:600;color:var(--accent)}
+.stock-table{width:100%;border-collapse:collapse;font-size:13px}
+.stock-table th{background:var(--thead);padding:9px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border)}
+.stock-table td{padding:9px 12px;border-bottom:1px solid var(--row-border);vertical-align:middle}
+.stock-table tr:last-child td{border-bottom:none}
+.stock-table tr:hover td{background:var(--row-hover)}
+.badge-low{background:#FFEBEE;color:#C62828;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600}
+.badge-ok{background:#E8F5E9;color:#2E7D32;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600}
+.badge-exp{background:#FFF3E0;color:#E65100;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600}
+.form-section{background:var(--surface);border-radius:14px;border:1px solid var(--border);padding:1.25rem;margin-bottom:1rem;box-shadow:var(--shadow)}
+.form-section h4{font-size:14px;font-weight:600;margin-bottom:1rem}
+.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:10px}
+.form-field label{font-size:12px;color:var(--muted);font-weight:500;display:block;margin-bottom:4px}
+.form-field input,.form-field select{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:var(--surface);color:var(--text);outline:none}
+.form-field input:focus,.form-field select:focus{border-color:var(--accent)}
+.submit-btn{width:100%;padding:11px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;margin-top:6px}
+.transfer-item-row{display:grid;grid-template-columns:1fr 80px 120px 36px;gap:6px;margin-bottom:6px;align-items:center}
+.bill-preview{background:#fff;border:2px solid var(--border);border-radius:12px;padding:1.25rem;margin-top:1rem;font-size:13px;line-height:1.8}
+.bill-title{font-size:16px;font-weight:700;text-align:center;margin-bottom:.5rem;color:var(--accent)}
+.bill-sub{text-align:center;color:var(--muted);font-size:12px;margin-bottom:1rem}
+.bill-table{width:100%;border-collapse:collapse;margin:1rem 0}
+.bill-table th,.bill-table td{padding:6px 10px;border:1px solid #ddd;font-size:12px}
+.bill-table th{background:#f5f5f5;font-weight:600}
+.print-btn{width:100%;padding:10px;border:none;border-radius:10px;background:#1565C0;color:#fff;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;margin-top:10px}
+.request-card{background:var(--surface);border-radius:12px;border:1px solid var(--border);padding:1rem 1.25rem;margin-bottom:8px;box-shadow:var(--shadow)}
+.req-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:4px}
+.req-branch{font-size:13px;font-weight:600;color:var(--accent)}
+.req-date{font-size:12px;color:var(--muted)}
+.req-items{font-size:13px;line-height:1.8;margin-bottom:8px;white-space:pre-line}
+.req-actions{display:flex;gap:6px}
+.btn-approve{padding:6px 14px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-family:inherit;font-size:12px;font-weight:500;cursor:pointer}
+.btn-reject{padding:6px 14px;border:1.5px solid var(--red);border-radius:8px;background:transparent;color:var(--red);font-family:inherit;font-size:12px;cursor:pointer}
+@media(max-width:600px){.inv-grid{grid-template-columns:repeat(2,1fr)}.form-grid{grid-template-columns:1fr}.transfer-item-row{grid-template-columns:1fr 60px 90px 30px}}
+
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#1A1714;color:#fff;padding:10px 20px;border-radius:99px;font-size:13px;opacity:0;transition:all .3s;pointer-events:none;z-index:300;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
@@ -181,6 +219,9 @@ header{background:var(--accent);padding:1rem 1.5rem;display:flex;align-items:cen
   <!-- TABS -->
   <div class="tabs" id="tabBar">
     <button class="tab active" onclick="switchTab(&#39;orders&#39;)">📋 ออเดอร์</button>
+    <button class="tab" onclick="switchTab(&#39;inventory&#39;)" id="inventoryTab">🏪 คลังสินค้า</button>
+    <button class="tab" onclick="switchTab(&#39;transfer&#39;)" id="transferTab">📦 ส่งสาขา</button>
+    <button class="tab" onclick="switchTab(&#39;requests&#39;)" id="requestsTab">📨 คำขอสาขา</button>
     <button class="tab" onclick="switchTab(&#39;stats&#39;)" id="statsTab" style="display:none">📊 สถิติ</button>
   </div>
 
@@ -220,7 +261,109 @@ header{background:var(--accent);padding:1rem 1.5rem;display:flex;align-items:cen
     </div>
   </div>
 
-  <!-- STATS TAB (owner only) -->
+  <!-- INVENTORY TAB -->
+  <div class="tab-content" id="tab-inventory">
+    <div class="content" style="padding-top:1.25rem">
+      <div class="inv-grid" id="invSummary">
+        <div class="inv-card"><div class="inv-card-label">รายการทั้งหมด</div><div class="inv-card-val" id="invTotal">—</div></div>
+        <div class="inv-card"><div class="inv-card-label">⚠️ ใกล้หมด</div><div class="inv-card-val" id="invLow" style="color:#C62828">—</div></div>
+        <div class="inv-card"><div class="inv-card-label">⏰ ใกล้ EXP</div><div class="inv-card-val" id="invExp" style="color:#E65100">—</div></div>
+      </div>
+
+      <!-- รับสินค้าเข้า -->
+      <div class="form-section">
+        <h4>📥 รับสินค้าเข้าคลัง</h4>
+        <div class="form-grid">
+          <div class="form-field" style="grid-column:1/-1">
+            <label>ชื่อยา</label>
+            <input list="catalogList" id="recvName" placeholder="พิมพ์หรือเลือกชื่อยา" oninput="autoFillUnit(this.value)">
+            <datalist id="catalogList"></datalist>
+          </div>
+          <div class="form-field"><label>จำนวน</label><input type="number" id="recvQty" placeholder="จำนวน" min="1"></div>
+          <div class="form-field"><label>หน่วย</label><input id="recvUnit" placeholder="กล่อง/ขวด/หลอด"></div>
+          <div class="form-field"><label>ราคาทุน (฿)</label><input type="number" id="recvCost" placeholder="ราคาทุน"></div>
+          <div class="form-field"><label>EXP (วว/ดด/ปปปป)</label><input id="recvExp" placeholder="12/2027"></div>
+          <div class="form-field" style="grid-column:1/-1"><label>หมายเหตุ</label><input id="recvNote" placeholder="หมายเหตุ (ถ้ามี)"></div>
+        </div>
+        <button class="submit-btn" onclick="receiveStock()">✅ บันทึกรับเข้า</button>
+      </div>
+
+      <!-- ตารางสต็อก -->
+      <div style="font-size:15px;font-weight:600;margin-bottom:.75rem">📦 สต็อกคงเหลือ
+        <input id="stockSearch" placeholder="ค้นหายา..." style="margin-left:12px;padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:var(--surface);color:var(--text);outline:none" oninput="filterStock()">
+      </div>
+      <div class="table-card">
+        <table class="stock-table">
+          <thead><tr><th>ชื่อยา</th><th>คงเหลือ</th><th>หน่วย</th><th>ราคาทุน</th><th>EXP</th><th>สถานะ</th></tr></thead>
+          <tbody id="stockBody"><tr><td colspan="6"><div class="spinner-wrap"><div class="spinner"></div><p>กำลังโหลด...</p></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRANSFER TAB -->
+  <div class="tab-content" id="tab-transfer">
+    <div class="content" style="padding-top:1.25rem">
+      <div class="form-section">
+        <h4>📦 ส่งสินค้าไปสาขา</h4>
+        <div class="form-grid">
+          <div class="form-field"><label>สาขาที่ส่ง</label>
+            <select id="transBranch">
+              <option value="">เลือกสาขา</option>
+              <option>พระจันทร์เภสัช สาขา 1</option>
+              <option>พระจันทร์เภสัช สาขา 2</option>
+              <option>พระจันทร์เภสัช สาขา 3</option>
+              <option>พระจันทร์เภสัช สาขา 4</option>
+              <option>บางขุนศรีเภสัช</option>
+            </select>
+          </div>
+          <div class="form-field"><label>ผู้ส่ง</label><input id="transSender" placeholder="ชื่อผู้ส่ง"></div>
+        </div>
+        <div style="font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;margin-bottom:6px">รายการที่ส่ง</div>
+        <div style="display:grid;grid-template-columns:1fr 80px 120px 36px;gap:6px;margin-bottom:4px">
+          <span style="font-size:11px;color:var(--muted)">ชื่อยา</span>
+          <span style="font-size:11px;color:var(--muted)">จำนวน</span>
+          <span style="font-size:11px;color:var(--muted)">EXP</span>
+          <span></span>
+        </div>
+        <div id="transItemsList"></div>
+        <div class="transfer-item-row" style="margin-top:8px">
+          <input list="catalogList2" id="transItemName" placeholder="ชื่อยา" oninput="autoFillTransExp(this.value)">
+          <datalist id="catalogList2"></datalist>
+          <input type="number" id="transItemQty" placeholder="จำนวน" min="1">
+          <input id="transItemExp" placeholder="EXP">
+          <button onclick="addTransferItem()" style="background:var(--accent);border:none;border-radius:8px;color:#fff;cursor:pointer;font-size:18px;height:36px">+</button>
+        </div>
+        <button class="submit-btn" onclick="submitTransfer()" style="margin-top:12px">📦 สร้างใบส่งสินค้า</button>
+      </div>
+
+      <!-- ใบส่งสินค้า -->
+      <div id="billPreviewWrap" style="display:none">
+        <div class="bill-preview" id="billPreview"></div>
+        <button class="print-btn" onclick="printBill()">🖨️ บันทึกรูปใบส่งสินค้า</button>
+      </div>
+
+      <!-- ประวัติส่งสาขา -->
+      <div style="font-size:15px;font-weight:600;margin:.75rem 0">📋 ประวัติการส่งสาขา</div>
+      <div class="table-card">
+        <table class="stock-table">
+          <thead><tr><th>วันที่</th><th>สาขา</th><th>ชื่อยา</th><th>จำนวน</th><th>EXP</th><th>ผู้ส่ง</th></tr></thead>
+          <tbody id="transferBody"><tr><td colspan="6"><div class="empty">ยังไม่มีข้อมูล</div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- REQUESTS TAB -->
+  <div class="tab-content" id="tab-requests">
+    <div class="content" style="padding-top:1.25rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
+        <div style="font-size:15px;font-weight:600">📨 คำขอยาจากสาขา</div>
+        <button class="refresh-btn" onclick="loadRequests()">🔄 รีเฟรช</button>
+      </div>
+      <div id="requestsContainer"><div class="spinner-wrap"><div class="spinner"></div><p>กำลังโหลด...</p></div></div>
+    </div>
+  </div>
   <div class="tab-content" id="tab-stats">
     <div class="content" style="padding-top:1.25rem">
 
@@ -361,6 +504,9 @@ function switchTab(tab) {
   document.getElementById('tab-' + tab).classList.add('active');
   event.target.classList.add('active');
   if (tab === 'stats') renderStats();
+  if (tab === 'inventory') loadInventory();
+  if (tab === 'transfer') { loadInventory(); loadTransferHistory(); }
+  if (tab === 'requests') loadRequests();
 }
 
 // ── LOAD ──
@@ -658,7 +804,244 @@ async function saveEditOrder() {
   }
 }
 
-// ── UPDATE STATUS ──
+// ── INVENTORY ──
+const INV_URL = 'https://script.google.com/macros/s/AKfycbyeYIQEab6vrzZINph5VjFCOgi4mwZ188Sut9CTvNTos2kFRQgCZWtVwxpuTUMs3GkvxQ/exec';
+let stockData = [];
+let catalogData = [];
+let transItems = [];
+
+async function loadInventory() {
+  try {
+    const [stockRes, catRes] = await Promise.all([
+      fetch(INV_URL + '?action=getStock'),
+      fetch(INV_URL + '?action=getCatalog')
+    ]);
+    stockData = await stockRes.json();
+    catalogData = await catRes.json();
+    buildCatalogDatalist();
+    renderStock(stockData);
+    updateInvSummary();
+  } catch(e) {
+    showToast('โหลดข้อมูลคลังไม่ได้ครับ');
+  }
+}
+
+function autoFillUnit(name) {
+  const cat = catalogData.find(d => d.name === name);
+  if (cat && cat.unit) {
+    document.getElementById('recvUnit').value = cat.unit;
+  }
+}
+
+function autoFillTransExp(name) {
+  const stock = stockData.find(d => d.name === name);
+  if (stock && stock.exp) {
+    const exp = parseExp(stock.exp);
+    if (exp) {
+      const m = String(exp.getMonth()+1).padStart(2,'0');
+      const y = exp.getFullYear();
+      document.getElementById('transItemExp').value = `${m}/${y}`;
+    }
+  }
+}
+
+function buildCatalogDatalist() {
+  const html = catalogData.map(d => `<option value="${d.name}">`).join('');
+  document.getElementById('catalogList').innerHTML = html;
+  const el2 = document.getElementById('catalogList2');
+  if (el2) el2.innerHTML = html;
+}
+
+function updateInvSummary() {
+  const today = new Date();
+  const soon = new Date(); soon.setDate(today.getDate() + 90);
+  document.getElementById('invTotal').textContent = stockData.length;
+  document.getElementById('invLow').textContent = stockData.filter(d => d.qty > 0 && d.qty <= d.minQty).length + stockData.filter(d => d.qty <= 0).length;
+  document.getElementById('invExp').textContent = stockData.filter(d => {
+    if (!d.exp) return false;
+    const exp = parseExp(d.exp);
+    return exp && exp <= soon;
+  }).length;
+}
+
+function parseExp(expStr) {
+  if (!expStr) return null;
+  const parts = expStr.replace('T00:00:00.000Z','').split(/[\/\-]/);
+  if (parts.length >= 2) {
+    const m = parseInt(parts[0]), y = parseInt(parts[1]);
+    if (!isNaN(m) && !isNaN(y)) return new Date(y < 100 ? 2000+y : y, m-1, 1);
+  }
+  const d = new Date(expStr); return isNaN(d) ? null : d;
+}
+
+function renderStock(data) {
+  const today = new Date();
+  const soon = new Date(); soon.setDate(today.getDate() + 90);
+  document.getElementById('stockBody').innerHTML = data.length
+    ? data.map(d => {
+        const exp = parseExp(d.exp);
+        const expStr = exp ? exp.toLocaleDateString('th-TH',{month:'short',year:'numeric'}) : '—';
+        const isOut = d.qty <= 0;
+        const isLow = !isOut && d.qty <= d.minQty;
+        const isExp = exp && exp <= soon;
+        const badge = isOut ? '<span class="badge-low">หมด</span>'
+          : isLow ? '<span class="badge-low">ใกล้หมด</span>'
+          : isExp ? '<span class="badge-exp">ใกล้ EXP</span>'
+          : '<span class="badge-ok">ปกติ</span>';
+        return `<tr>
+          <td>${d.name}</td>
+          <td style="font-weight:600;color:${isOut?'#C62828':isLow?'#E65100':'var(--accent)'}">${d.qty}</td>
+          <td>${d.unit||'—'}</td>
+          <td>${d.cost ? d.cost.toLocaleString()+' ฿' : '—'}</td>
+          <td style="color:${isExp?'#E65100':'var(--text)'}">${expStr}</td>
+          <td>${badge}</td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="6" class="empty">ยังไม่มีสต็อกครับ</td></tr>';
+}
+
+function filterStock() {
+  const q = document.getElementById('stockSearch').value.toLowerCase();
+  renderStock(stockData.filter(d => d.name.toLowerCase().includes(q)));
+}
+
+async function receiveStock() {
+  const name = document.getElementById('recvName').value.trim();
+  const qty  = parseFloat(document.getElementById('recvQty').value);
+  const unit = document.getElementById('recvUnit').value.trim();
+  const cost = parseFloat(document.getElementById('recvCost').value) || 0;
+  const exp  = document.getElementById('recvExp').value.trim();
+  const note = document.getElementById('recvNote').value.trim();
+  if (!name || !qty) { showToast('กรุณาใส่ชื่อยาและจำนวนครับ'); return; }
+  try {
+    await fetch(INV_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({action:'receive', name, qty, unit, cost, exp, note})});
+    showToast(`✅ รับเข้า ${name} x${qty} แล้วครับ`);
+    ['recvName','recvQty','recvUnit','recvCost','recvExp','recvNote'].forEach(id => document.getElementById(id).value='');
+    setTimeout(loadInventory, 1000);
+  } catch(e) { showToast('บันทึกไม่ได้ครับ'); }
+}
+
+// ── TRANSFER ──
+function addTransferItem() {
+  const name = document.getElementById('transItemName').value.trim();
+  const qty  = parseInt(document.getElementById('transItemQty').value) || 1;
+  const exp  = document.getElementById('transItemExp').value.trim();
+  if (!name) { showToast('กรุณาใส่ชื่อยาครับ'); return; }
+  transItems.push({name, qty, exp});
+  renderTransItems();
+  ['transItemName','transItemQty','transItemExp'].forEach(id => document.getElementById(id).value='');
+}
+
+function renderTransItems() {
+  document.getElementById('transItemsList').innerHTML = transItems.map((item, i) =>
+    `<div class="transfer-item-row">
+      <span style="font-size:13px">${item.name}</span>
+      <span style="font-size:13px;text-align:center">${item.qty}</span>
+      <span style="font-size:12px;color:var(--muted)">${item.exp||'—'}</span>
+      <button onclick="transItems.splice(${i},1);renderTransItems()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px">🗑</button>
+    </div>`).join('');
+}
+
+async function submitTransfer() {
+  const branch = document.getElementById('transBranch').value;
+  const sender = document.getElementById('transSender').value.trim();
+  if (!branch) { showToast('กรุณาเลือกสาขาครับ'); return; }
+  if (!transItems.length) { showToast('กรุณาเพิ่มรายการยาครับ'); return; }
+  try {
+    await fetch(INV_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({action:'transfer', branch, sender, items: transItems})});
+    showBillPreview(branch, sender, transItems);
+    transItems = [];
+    renderTransItems();
+    setTimeout(loadTransferHistory, 1000);
+    showToast('✅ บันทึกการส่งสาขาแล้วครับ');
+  } catch(e) { showToast('บันทึกไม่ได้ครับ'); }
+}
+
+function showBillPreview(branch, sender, items) {
+  const now = new Date().toLocaleString('th-TH',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  const rows = items.map((item,i) =>
+    `<tr><td>${i+1}</td><td>${item.name}</td><td style="text-align:center">${item.qty}</td><td style="text-align:center">${item.exp||'—'}</td></tr>`
+  ).join('');
+  document.getElementById('billPreview').innerHTML = `
+    <div class="bill-title">ใบส่งสินค้า — ร้านยา Best</div>
+    <div class="bill-sub">วันที่: ${now}</div>
+    <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px">
+      <div><b>สาขาที่รับ:</b> ${branch}</div>
+      <div><b>ผู้ส่ง:</b> ${sender||'—'}</div>
+    </div>
+    <table class="bill-table">
+      <thead><tr><th>#</th><th>ชื่อยา</th><th>จำนวน</th><th>EXP</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div style="font-size:12px;color:#888;text-align:center;margin-top:8px">กรุณาตรวจสอบสินค้าให้ครบถ้วนก่อนรับ</div>`;
+  document.getElementById('billPreviewWrap').style.display = 'block';
+}
+
+function printBill() {
+  const bill = document.getElementById('billPreview');
+  const w = window.open('','_blank');
+  w.document.write(`<html><head><title>ใบส่งสินค้า</title>
+    <style>body{font-family:sans-serif;padding:20px}table{width:100%;border-collapse:collapse}
+    th,td{padding:8px;border:1px solid #ddd}th{background:#f5f5f5}</style></head>
+    <body>${bill.innerHTML}<script>window.onload=()=>{window.print();window.close()}<\/script></body></html>`);
+  w.document.close();
+}
+
+async function loadTransferHistory() {
+  try {
+    const res = await fetch(INV_URL + '?action=getTransfer');
+    const data = await res.json();
+    document.getElementById('transferBody').innerHTML = data.length
+      ? data.reverse().map(d => `<tr>
+          <td style="font-size:12px">${d.date}</td>
+          <td>${d.branch}</td><td>${d.name}</td>
+          <td style="text-align:center">${d.qty}</td>
+          <td>${d.exp||'—'}</td><td>${d.sender||'—'}</td>
+        </tr>`).join('')
+      : '<tr><td colspan="6" class="empty">ยังไม่มีข้อมูล</td></tr>';
+  } catch(e) {}
+}
+
+// ── REQUESTS ──
+async function loadRequests() {
+  document.getElementById('requestsContainer').innerHTML = '<div class="spinner-wrap"><div class="spinner"></div><p>กำลังโหลด...</p></div>';
+  try {
+    const res = await fetch(INV_URL + '?action=getBranchRequests');
+    const data = await res.json();
+    if (!data.length) {
+      document.getElementById('requestsContainer').innerHTML = '<div class="empty">ยังไม่มีคำขอจากสาขาครับ</div>';
+      return;
+    }
+    const badges = {'รอดำเนินการ':'s-wait','จัดส่งแล้ว':'s-done','ยกเลิก':'s-cancel'};
+    document.getElementById('requestsContainer').innerHTML = data.reverse().map(r => `
+      <div class="request-card">
+        <div class="req-head">
+          <span class="req-branch">🏪 ${r.branch}</span>
+          <span class="req-date">${r.date}</span>
+          <span class="status-badge ${badges[r.status]||'s-wait'}">${r.status}</span>
+        </div>
+        <div class="req-items">${r.name} x${r.qty}${r.note ? '\n📝 '+r.note : ''}</div>
+        <div class="req-actions">
+          <button class="btn-approve" onclick="updateReqStatus(${r.row},'จัดส่งแล้ว')">✅ จัดส่งแล้ว</button>
+          <button class="btn-reject" onclick="updateReqStatus(${r.row},'ยกเลิก')">❌ ยกเลิก</button>
+        </div>
+      </div>`).join('');
+  } catch(e) {
+    document.getElementById('requestsContainer').innerHTML = '<div class="empty">โหลดไม่ได้ครับ ลองรีเฟรช</div>';
+  }
+}
+
+async function updateReqStatus(row, status) {
+  try {
+    await fetch(`${INV_URL}?action=updateRequestStatus&row=${row}&status=${encodeURIComponent(status)}`);
+    showToast(`✅ อัปเดตเป็น "${status}" แล้วครับ`);
+    loadRequests();
+  } catch(e) { showToast('อัปเดตไม่ได้ครับ'); }
+}
+
+// ── LOAD INVENTORY ON TAB SWITCH ──
 async function updateStatus(row, status) {
   try {
     await fetch(`${ADMIN_URL}?action=updateStatus&row=${row}&status=${encodeURIComponent(status)}`);
