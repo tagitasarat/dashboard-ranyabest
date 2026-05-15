@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0044)file:///C:/Users/acer/Downloads/admin_8.html -->
+<!-- saved from url=(0045)file:///C:/Users/acer/Downloads/admin_10.html -->
 <html lang="th"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -117,6 +117,8 @@ header{background:var(--accent);padding:1rem 1.5rem;display:flex;align-items:cen
 .copy-btn{padding:6px 12px;border:1.5px solid #9E9E9E;border-radius:8px;background:transparent;color:#757575;font-family:inherit;font-size:12px;cursor:pointer;transition:all 0.2s}
 .copy-btn:hover{background:#616161;color:#fff;border-color:#616161}
 .copy-btn.copied{background:#2E7D32;color:#fff;border-color:#2E7D32}
+.copy-noprice-btn{border-color:#B0BEC5;color:#546E7A;}
+.copy-noprice-btn:hover{background:#546E7A;color:#fff;border-color:#546E7A}
 
 /* EDIT ORDER POPUP */
 .edit-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity .25s}
@@ -621,7 +623,8 @@ function renderOrders() {
         ${totalDisplay}
         <div class="order-actions">
           <button class="edit-btn" onclick="event.stopPropagation();openEditOrder(${o.row})">✏️ แก้ไข</button>
-          <button class="copy-btn" onclick="event.stopPropagation();copyOrderText(${o.row})">📋 Copy</button>
+          <button class="copy-btn" onclick="event.stopPropagation();copyOrderText(${o.row}, false)">📋 Copy</button>
+          ${currentRole === 'owner' ? `<button class="copy-btn copy-noprice-btn" onclick="event.stopPropagation();copyOrderText(${o.row}, true)" title="Copy ไม่มีราคา สำหรับลูกน้อง">📋 ไม่มีราคา</button>` : ''}
           <select class="status-select" onchange="updateStatus(${o.row}, this.value)">
             <option value="รอดำเนินการ" ${o.status==='รอดำเนินการ'?'selected':''}>รอดำเนินการ</option>
             <option value="จัดส่งแล้ว" ${o.status==='จัดส่งแล้ว'?'selected':''}>จัดส่งแล้ว</option>
@@ -634,13 +637,19 @@ function renderOrders() {
 }
 
 // ── COPY ORDER TEXT ──
-function copyOrderText(row) {
+function stripPrices(itemsStr) {
+  // ลบ " = 1,234 ฿" หรือ " = 1234 ฿" ทุกรูปแบบ
+  return itemsStr.replace(/\s*=\s*[\d,]+\s*฿/g, '').replace(/\s*=\s*[\d,]+\s*บาท/gi, '');
+}
+
+function copyOrderText(row, noPrice = false) {
   const o = allOrders.find(x => x.row === row);
   if (!o) return;
 
-  // แยกรายการยาจาก items string (format: "1. ยา x1 = 100 ฿\n2. ...")
-  const itemLines = o.items.split('\n').filter(l => l.trim());
-  const itemsText = itemLines.join('\n');
+  const hidePrice = noPrice || currentRole === 'staff';
+
+  const itemsText = hidePrice ? stripPrices(o.items) : o.items;
+  const totalLine = !hidePrice ? `\n─────────────────\nยอดรวม: ${o.total}` : '';
 
   const text =
 `📋 รายการสั่งซื้อ
@@ -650,17 +659,17 @@ function copyOrderText(row) {
 เบอร์: ${o.phone}
 ที่อยู่: ${o.address}
 ─────────────────
-${itemsText}
-─────────────────
-ยอดรวม: ${o.total}`;
+${itemsText.trim()}${totalLine}`;
 
   navigator.clipboard.writeText(text).then(() => {
-    const btn = document.querySelector(`#order-${row} .copy-btn`);
+    const selector = noPrice ? `#order-${row} .copy-noprice-btn` : `#order-${row} .copy-btn:not(.copy-noprice-btn)`;
+    const btn = document.querySelector(selector);
     if (btn) {
+      const orig = btn.textContent;
       btn.textContent = '✅ Copied!';
       btn.classList.add('copied');
       setTimeout(() => {
-        btn.textContent = '📋 Copy';
+        btn.textContent = orig;
         btn.classList.remove('copied');
       }, 2000);
     }
