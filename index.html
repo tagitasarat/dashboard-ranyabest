@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0045)file:///C:/Users/acer/Downloads/admin_10.html -->
+<!-- saved from url=(0045)file:///C:/Users/acer/Downloads/admin_12.html -->
 <html lang="th"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -183,7 +183,40 @@ header{background:var(--accent);padding:1rem 1.5rem;display:flex;align-items:cen
 .btn-reject{padding:6px 14px;border:1.5px solid var(--red);border-radius:8px;background:transparent;color:var(--red);font-family:inherit;font-size:12px;cursor:pointer}
 @media(max-width:600px){.inv-grid{grid-template-columns:repeat(2,1fr)}.form-grid{grid-template-columns:1fr}.transfer-item-row{grid-template-columns:1fr 60px 90px 30px}}
 
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#1A1714;color:#fff;padding:10px 20px;border-radius:99px;font-size:13px;opacity:0;transition:all .3s;pointer-events:none;z-index:300;white-space:nowrap}
+/* QUICK STOCK */
+.qs-modebar{display:flex;gap:8px;margin-bottom:1rem}
+.qs-mode{flex:1;padding:12px;border:1.5px solid var(--border);border-radius:12px;background:var(--surface);color:var(--muted);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s}
+.qs-mode.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+#qsModeOut.active{background:var(--orange);border-color:var(--orange)}
+.qs-scan-row{display:flex;gap:8px;align-items:center}
+.qs-barcode-input{flex:1;padding:14px 16px;border:2px solid var(--accent);border-radius:12px;font-family:inherit;font-size:18px;letter-spacing:1px;outline:none;background:var(--surface);color:var(--text)}
+.qs-cam-btn{width:52px;height:52px;border:1.5px solid var(--accent);border-radius:12px;background:transparent;font-size:22px;cursor:pointer;flex-shrink:0}
+.qs-hint{font-size:12px;color:var(--muted);margin:10px 2px;line-height:1.6}
+.qs-manual{display:flex;gap:6px;margin-top:6px}
+.qs-manual-input{flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:var(--surface);color:var(--text);outline:none}
+.qs-add-btn{padding:9px 14px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-family:inherit;font-size:13px;cursor:pointer;flex-shrink:0}
+.qs-list-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.qs-list-head span{font-size:14px;font-weight:600}
+.qs-clear{background:none;border:none;color:var(--red);font-family:inherit;font-size:12px;cursor:pointer}
+.qs-item{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--row-border,#F0EDE8)}
+.qs-item:last-of-type{border-bottom:none}
+.qs-item-name{flex:1;font-size:14px;font-weight:500;min-width:0;word-break:break-word}
+.qs-qty{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.qs-qty button{width:30px;height:30px;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:18px;font-weight:700;cursor:pointer;line-height:1}
+.qs-qty input{width:48px;height:30px;text-align:center;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text);outline:none}
+.qs-exp{width:96px;height:30px;padding:0 8px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:12px;background:var(--surface);color:var(--text);outline:none;flex-shrink:0}
+.qs-del{background:none;border:none;color:var(--red);font-size:16px;cursor:pointer;flex-shrink:0}
+/* SCANNER OVERLAY */
+.qs-scanner{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;display:none;flex-direction:column;align-items:center;justify-content:center;padding:1rem}
+.qs-scanner.open{display:flex}
+.qs-scanner-box{background:var(--surface);border-radius:16px;width:100%;max-width:420px;overflow:hidden}
+.qs-scanner-head{display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;border-bottom:1px solid var(--border)}
+.qs-scanner-head h3{font-size:16px;font-weight:600}
+.qs-scanner-head button{background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted)}
+.qs-scanner-video{width:100%;aspect-ratio:4/3;background:#000;object-fit:cover;display:block}
+.qs-scanner-status{padding:12px 16px;font-size:13px;color:var(--muted);text-align:center}
+.qs-scanner-count{padding:0 16px 14px;text-align:center;font-size:14px;font-weight:600;color:var(--accent)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#1A1714;color:#fff;padding:10px 20px;border-radius:99px;font-size:13px;opacity:0;transition:all .3s;pointer-events:none;z-index:600;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 @media(max-width:600px){
@@ -224,6 +257,7 @@ header{background:var(--accent);padding:1rem 1.5rem;display:flex;align-items:cen
   <!-- TABS -->
   <div class="tabs" id="tabBar">
     <button class="tab active" onclick="switchTab(&#39;orders&#39;)">📋 ออเดอร์</button>
+    <button class="tab" onclick="switchTab(&#39;quick&#39;)" id="quickTab">⚡ รับ/ตัด สต็อก</button>
     <button class="tab" onclick="switchTab(&#39;inventory&#39;)" id="inventoryTab">🏪 คลังสินค้า</button>
     <button class="tab" onclick="switchTab(&#39;transfer&#39;)" id="transferTab">📦 ส่งสาขา</button>
     <button class="tab" onclick="switchTab(&#39;requests&#39;)" id="requestsTab">📨 คำขอสาขา</button>
@@ -263,6 +297,38 @@ header{background:var(--accent);padding:1rem 1.5rem;display:flex;align-items:cen
         <button class="refresh-btn" style="margin-left:0" onclick="toggleSelectMode()" id="selectModeBtn">☑️ เลือกหลายออเดอร์</button>
       </div>
       <div id="ordersContainer"><div class="spinner-wrap"><div class="spinner"></div><p>กำลังโหลด...</p></div></div>
+    </div>
+  </div>
+
+  <!-- QUICK STOCK TAB -->
+  <div class="tab-content" id="tab-quick">
+    <div class="content" style="padding-top:1.25rem">
+      <div class="qs-modebar">
+        <button class="qs-mode active" id="qsModeIn" onclick="setQsMode(&#39;in&#39;)">📥 รับเข้า (+)</button>
+        <button class="qs-mode" id="qsModeOut" onclick="setQsMode(&#39;out&#39;)">📤 ตัดออก / ขาย (−)</button>
+      </div>
+
+      <div class="form-section">
+        <div class="qs-scan-row">
+          <input id="qsBarcode" class="qs-barcode-input" placeholder="สแกนหรือพิมพ์บาร์โค้ด แล้วกด Enter" autocomplete="off" inputmode="numeric" onkeydown="if(event.key===&#39;Enter&#39;){event.preventDefault();qsHandleBarcode(this.value);this.value=&#39;&#39;;}">
+          <button class="qs-cam-btn" onclick="qsOpenScanner()" title="เปิดกล้องสแกน">📷</button>
+        </div>
+        <div class="qs-hint">💡 ใช้เครื่องสแกนบลูทูธจ่อสแกนรัว ๆ ได้เลย ระบบจะเพิ่มรายการให้อัตโนมัติ — หรือพิมพ์ชื่อยาด้านล่างก็ได้</div>
+        <div class="qs-manual">
+          <input list="qsCatalogList" id="qsManualName" class="qs-manual-input" placeholder="หรือพิมพ์ชื่อยาเพื่อเพิ่ม..." onkeydown="if(event.key===&#39;Enter&#39;){event.preventDefault();qsAddByName(this.value);this.value=&#39;&#39;;}">
+          <datalist id="qsCatalogList"></datalist>
+          <button class="qs-add-btn" onclick="qsAddByName(document.getElementById(&#39;qsManualName&#39;).value);document.getElementById(&#39;qsManualName&#39;).value=&#39;&#39;">+ เพิ่ม</button>
+        </div>
+      </div>
+
+      <div id="qsListWrap" class="form-section" style="display:none">
+        <div class="qs-list-head">
+          <span id="qsListTitle">รายการที่จะรับเข้า</span>
+          <button class="qs-clear" onclick="qsClear()">ล้างทั้งหมด</button>
+        </div>
+        <div id="qsList"></div>
+        <button class="submit-btn" id="qsSaveBtn" onclick="qsSave()">✅ บันทึกรับเข้าคลัง</button>
+      </div>
     </div>
   </div>
 
@@ -455,6 +521,19 @@ header{background:var(--accent);padding:1rem 1.5rem;display:flex;align-items:cen
   </div>
 </div>
 
+<!-- QUICK SCAN CAMERA OVERLAY -->
+<div class="qs-scanner" id="qsScanner">
+  <div class="qs-scanner-box">
+    <div class="qs-scanner-head">
+      <h3>📷 สแกนบาร์โค้ด</h3>
+      <button onclick="qsCloseScanner()">✕</button>
+    </div>
+    <video id="qsVideo" class="qs-scanner-video" autoplay="" playsinline="" muted=""></video>
+    <div class="qs-scanner-status" id="qsScannerStatus">กำลังเปิดกล้อง...</div>
+    <div class="qs-scanner-count" id="qsScannerCount"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -512,6 +591,7 @@ function switchTab(tab) {
   if (tab === 'inventory') loadInventory();
   if (tab === 'transfer') { loadInventory(); loadTransferHistory(); }
   if (tab === 'requests') loadRequests();
+  if (tab === 'quick') { qsLoadCatalog(); setTimeout(() => { const b = document.getElementById('qsBarcode'); if (b) b.focus(); }, 250); }
 }
 
 // ── LOAD ──
@@ -1218,6 +1298,210 @@ function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ════════════════════════════════════════════
+// ⚡ QUICK STOCK (สแกนรับ/ตัด สต็อก)
+// ════════════════════════════════════════════
+const CATALOG_URL = 'https://script.google.com/macros/s/AKfycbyl5_Z6fT1CRXgDggxGj0wTkPZTS7KVjUVYDI5HToXVa5RR9Yu3zgRs6o3lrDH7BYWB/exec';
+let qsMode = 'in';          // 'in' = รับเข้า, 'out' = ตัดออก
+let qsItems = [];           // [{name, unit, qty, exp}]
+let qsCatalog = [];         // [{name, unit, barcode}]
+let qsBarcodeMap = {};      // barcode -> {name, unit}
+
+async function qsLoadCatalog() {
+  if (qsCatalog.length) return;
+  try {
+    const res = await fetch(CATALOG_URL);
+    const json = await res.json();
+    qsCatalog = json
+      .filter(r => r.name && r.name.toString().trim())
+      .map(r => ({
+        name:    r.name.toString().trim(),
+        unit:    (r.unit || '').toString().trim(),
+        barcode: (r.barcode || '').toString().trim()
+      }));
+    qsBarcodeMap = {};
+    qsCatalog.forEach(c => { if (c.barcode) qsBarcodeMap[c.barcode] = c; });
+    document.getElementById('qsCatalogList').innerHTML =
+      qsCatalog.map(c => `<option value="${c.name.replace(/"/g,'&quot;')}">`).join('');
+  } catch (e) {
+    showToast('โหลดแคตตาล็อกไม่ได้ครับ ลองรีเฟรช');
+  }
+}
+
+function setQsMode(mode) {
+  if (qsItems.length && mode !== qsMode) {
+    if (!confirm('สลับโหมดจะล้างรายการที่ค้างอยู่ ยืนยันมั้ยครับ?')) return;
+    qsItems = [];
+  }
+  qsMode = mode;
+  document.getElementById('qsModeIn').classList.toggle('active', mode === 'in');
+  document.getElementById('qsModeOut').classList.toggle('active', mode === 'out');
+  document.getElementById('qsListTitle').textContent = mode === 'in' ? 'รายการที่จะรับเข้า' : 'รายการที่จะตัดออก';
+  document.getElementById('qsSaveBtn').textContent = mode === 'in' ? '✅ บันทึกรับเข้าคลัง' : '✅ บันทึกตัดสต็อก';
+  document.getElementById('qsSaveBtn').style.background = mode === 'in' ? 'var(--accent)' : 'var(--orange)';
+  qsRender();
+  const b = document.getElementById('qsBarcode'); if (b) b.focus();
+}
+
+function qsHandleBarcode(code) {
+  code = (code || '').toString().trim();
+  if (!code) return;
+  const item = qsBarcodeMap[code];
+  if (item) {
+    qsAddItem(item.name, item.unit);
+  } else {
+    showToast(`⚠️ ไม่พบบาร์โค้ด: ${code}`);
+  }
+}
+
+function qsAddByName(name) {
+  name = (name || '').toString().trim();
+  if (!name) return;
+  const cat = qsCatalog.find(c => c.name === name);
+  qsAddItem(name, cat ? cat.unit : '');
+}
+
+function qsAddItem(name, unit) {
+  const existing = qsItems.find(i => i.name === name);
+  if (existing) {
+    existing.qty += 1;
+  } else {
+    qsItems.push({ name, unit: unit || '', qty: 1, exp: '' });
+  }
+  qsRender();
+  // beep/feedback แบบเบา ๆ
+  showToast(`+ ${name}`);
+}
+
+function qsAdjust(i, delta) {
+  if (!qsItems[i]) return;
+  qsItems[i].qty = Math.max(1, qsItems[i].qty + delta);
+  qsRender();
+}
+function qsSetQty(i, v) {
+  if (!qsItems[i]) return;
+  const n = parseInt(v); qsItems[i].qty = (!isNaN(n) && n > 0) ? n : 1;
+  qsRender();
+}
+function qsSetExp(i, v) { if (qsItems[i]) qsItems[i].exp = (v || '').trim(); }
+function qsRemove(i) { qsItems.splice(i, 1); qsRender(); }
+function qsClear() {
+  if (qsItems.length && !confirm('ล้างรายการทั้งหมด?')) return;
+  qsItems = []; qsRender();
+}
+
+function qsRender() {
+  const wrap = document.getElementById('qsListWrap');
+  const list = document.getElementById('qsList');
+  if (!qsItems.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  let totalQty = 0;
+  list.innerHTML = qsItems.map((it, i) => {
+    totalQty += it.qty;
+    const expField = qsMode === 'in'
+      ? `<input class="qs-exp" placeholder="EXP ดด/ปปปป" value="${(it.exp||'').replace(/"/g,'&quot;')}" onchange="qsSetExp(${i}, this.value)">`
+      : '';
+    return `<div class="qs-item">
+      <div class="qs-item-name">${it.name}${it.unit ? ` <span style="color:var(--muted);font-weight:400">(${it.unit})</span>` : ''}</div>
+      <div class="qs-qty">
+        <button onclick="qsAdjust(${i},-1)">−</button>
+        <input type="number" min="1" value="${it.qty}" onchange="qsSetQty(${i}, this.value)">
+        <button onclick="qsAdjust(${i},1)">+</button>
+      </div>
+      ${expField}
+      <button class="qs-del" onclick="qsRemove(${i})">🗑</button>
+    </div>`;
+  }).join('');
+  document.getElementById('qsListTitle').textContent =
+    (qsMode === 'in' ? 'รายการที่จะรับเข้า' : 'รายการที่จะตัดออก') + ` (${qsItems.length} ชนิด · ${totalQty} ชิ้น)`;
+}
+
+async function qsSave() {
+  if (!qsItems.length) { showToast('ยังไม่มีรายการครับ'); return; }
+  const verb = qsMode === 'in' ? 'รับเข้า' : 'ตัดออก';
+  if (!confirm(`ยืนยัน${verb} ${qsItems.length} ชนิด?`)) return;
+  const btn = document.getElementById('qsSaveBtn');
+  btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
+  const items = [...qsItems];
+  let ok = 0;
+  for (const it of items) {
+    try {
+      const body = qsMode === 'in'
+        ? { action: 'receive', name: it.name, qty: it.qty, unit: it.unit, cost: 0, exp: it.exp || '', note: 'สแกนรับเข้า' }
+        : { action: 'deduct',  name: it.name, qty: it.qty, note: 'ตัดสต็อก/ขาย' };
+      await fetch(INV_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      ok++;
+    } catch (e) {}
+  }
+  qsItems = []; qsRender();
+  btn.disabled = false;
+  btn.textContent = qsMode === 'in' ? '✅ บันทึกรับเข้าคลัง' : '✅ บันทึกตัดสต็อก';
+  showToast(`✅ ${verb} ${ok} รายการแล้วครับ`);
+  // อัปเดตคลังเบื้องหลัง เผื่อสลับไปดู
+  stockData = [];
+  const b = document.getElementById('qsBarcode'); if (b) b.focus();
+}
+
+// ── CAMERA SCANNER (เฉพาะเครื่องที่รองรับ BarcodeDetector เช่น Chrome/Android) ──
+let qsDetector = null, qsStream = null, qsScanLoop = false, qsLastCode = '', qsLastTime = 0, qsSessionCount = 0;
+
+async function qsOpenScanner() {
+  await qsLoadCatalog();
+  document.getElementById('qsScanner').classList.add('open');
+  qsSessionCount = 0;
+  document.getElementById('qsScannerCount').textContent = '';
+  const status = document.getElementById('qsScannerStatus');
+  if (!('BarcodeDetector' in window)) {
+    status.textContent = '❌ เครื่องนี้ไม่รองรับสแกนผ่านกล้อง (เช่น iPhone) — แนะนำใช้เครื่องสแกนบลูทูธ หรือพิมพ์บาร์โค้ดเองครับ';
+    return;
+  }
+  try {
+    qsDetector = new BarcodeDetector({ formats: ['ean_13','ean_8','code_128','code_39','upc_a','upc_e','qr_code'] });
+  } catch (e) { qsDetector = null; }
+  try {
+    qsStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    const video = document.getElementById('qsVideo');
+    video.srcObject = qsStream;
+    status.textContent = `🔍 จ่อกล้องไปที่บาร์โค้ด (โหมด: ${qsMode === 'in' ? 'รับเข้า' : 'ตัดออก'})`;
+    qsScanLoop = true;
+    qsScanTick();
+  } catch (e) {
+    status.textContent = '❌ เปิดกล้องไม่ได้ — ลองพิมพ์บาร์โค้ดเองครับ';
+  }
+}
+
+async function qsScanTick() {
+  if (!qsScanLoop || !qsDetector) return;
+  try {
+    const codes = await qsDetector.detect(document.getElementById('qsVideo'));
+    if (codes.length) {
+      const code = codes[0].rawValue;
+      const now = Date.now();
+      // กันสแกนซ้ำรัว ๆ ตัวเดิมภายใน 1.2 วิ
+      if (code !== qsLastCode || now - qsLastTime > 1200) {
+        qsLastCode = code; qsLastTime = now;
+        const before = qsItems.length;
+        const beforeQty = qsItems.reduce((s,i)=>s+i.qty,0);
+        qsHandleBarcode(code);
+        const afterQty = qsItems.reduce((s,i)=>s+i.qty,0);
+        if (afterQty > beforeQty) {
+          qsSessionCount++;
+          document.getElementById('qsScannerCount').textContent = `สแกนแล้ว ${qsSessionCount} ครั้ง — ปิดกล้องเพื่อบันทึก`;
+          if (navigator.vibrate) navigator.vibrate(60);
+        }
+      }
+    }
+  } catch (e) {}
+  if (qsScanLoop) requestAnimationFrame(qsScanTick);
+}
+
+function qsCloseScanner() {
+  qsScanLoop = false;
+  if (qsStream) { qsStream.getTracks().forEach(t => t.stop()); qsStream = null; }
+  document.getElementById('qsScanner').classList.remove('open');
+  const b = document.getElementById('qsBarcode'); if (b) b.focus();
 }
 
 // Auto login
