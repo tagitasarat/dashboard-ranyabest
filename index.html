@@ -4,7 +4,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ร้านยา Best — Admin</title>
-<link href="file:///C:/Users/acer/Downloads/index_files/css2" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg:#F7F5F0;--surface:#fff;--border:#E2DDD6;--text:#1A1714;--muted:#7A746C;
@@ -115,6 +117,25 @@ header{background:var(--accent);padding:1rem 1.5rem;display:flex;align-items:cen
 .edit-btn{padding:6px 12px;border:1.5px solid var(--accent);border-radius:8px;background:transparent;color:var(--accent);font-family:inherit;font-size:12px;cursor:pointer}
 .edit-btn:hover{background:var(--accent);color:#fff}
 .copy-btn{padding:6px 12px;border:1.5px solid #9E9E9E;border-radius:8px;background:transparent;color:#757575;font-family:inherit;font-size:12px;cursor:pointer;transition:all 0.2s}
+.label-btn{padding:6px 12px;border:1.5px solid var(--accent);border-radius:8px;background:var(--accent);color:#fff;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s}
+.label-btn:hover{opacity:.88}
+.label-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:250;padding:1rem}
+.label-overlay.open{display:flex}
+.label-box{background:var(--surface);border-radius:18px;width:100%;max-width:420px;max-height:92vh;overflow-y:auto;box-shadow:var(--shadow)}
+.label-head{display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;border-bottom:1px solid var(--border)}
+.label-head h3{font-size:16px}
+.label-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)}
+.label-body{padding:1.25rem}
+.label-field{margin-bottom:.75rem}
+.label-field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px}
+.label-field input{width:100%;padding:9px 11px;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:14px;background:var(--bg);color:var(--text)}
+.label-preview-wrap{text-align:center;background:#f0f0f0;border-radius:10px;padding:12px;margin:.75rem 0}
+.label-preview-wrap canvas{max-width:100%;border:1px solid var(--border);background:#fff;border-radius:4px}
+.label-actions{display:flex;gap:8px;margin-top:.5rem}
+.label-actions button{flex:1;padding:11px;border:none;border-radius:10px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.label-print-btn{background:var(--accent);color:#fff}
+.label-share-btn{background:var(--blue);color:#fff}
+.label-hint{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5}
 .copy-btn:hover{background:#616161;color:#fff;border-color:#616161}
 .copy-btn.copied{background:#2E7D32;color:#fff;border-color:#2E7D32}
 .copy-noprice-btn{border-color:#B0BEC5;color:#546E7A;}
@@ -534,6 +555,37 @@ header{background:var(--accent);padding:1rem 1.5rem;display:flex;align-items:cen
   </div>
 </div>
 
+<!-- LABEL POPUP (Peripage) -->
+<div class="label-overlay" id="labelOverlay">
+  <div class="label-box">
+    <div class="label-head">
+      <h3>🖨 ป้ายส่ง</h3>
+      <button class="label-close" onclick="closeLabel()">✕</button>
+    </div>
+    <div class="label-body">
+      <div class="label-field">
+        <label>ชื่อผู้ส่ง</label>
+        <input id="lblSenderName" type="text" oninput="renderLabel()">
+      </div>
+      <div class="label-field">
+        <label>เบอร์ผู้ส่ง</label>
+        <input id="lblSenderPhone" type="text" oninput="renderLabel()">
+      </div>
+      <div class="label-preview-wrap">
+        <canvas id="labelCanvas"></canvas>
+      </div>
+      <div class="label-actions">
+        <button class="label-print-btn" onclick="printLabel()">🖨 ปริ้น</button>
+        <button class="label-share-btn" onclick="shareLabel()">📤 แชร์เข้าแอป</button>
+      </div>
+      <div class="label-hint">
+        💡 <b>Android/PC:</b> กด "ปริ้น" เลือกเครื่อง Peripage<br>
+        💡 <b>iPhone:</b> กด "แชร์เข้าแอป" → เลือกแอป Peripage → ปริ้น
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -631,10 +683,14 @@ function parseOrderDate(dateStr) {
   try {
     const s = dateStr.toString();
     // Buddhist ISO: "2569-04-25T14:02:57.000Z" → ลบ 543 ปี
-    const isoMatch = s.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})/);
+    const isoMatch = s.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(Z)?/);
     if (isoMatch) {
-      const [,y,m,d,h,min,sec] = isoMatch;
+      const [,y,m,d,h,min,sec,z] = isoMatch;
       const adYear = parseInt(y) > 2400 ? parseInt(y) - 543 : parseInt(y);
+      // ถ้าลงท้าย Z = เป็นเวลา UTC จริง → สร้างเป็น UTC แล้วให้ formatThaiDate แปลงเป็นเวลาไทย (+7)
+      if (z === 'Z') {
+        return new Date(Date.UTC(adYear, parseInt(m)-1, parseInt(d), parseInt(h), parseInt(min), parseInt(sec)));
+      }
       return new Date(adYear, parseInt(m)-1, parseInt(d), parseInt(h), parseInt(min), parseInt(sec));
     }
     // Thai format: "25/4/2569 21:02"
@@ -650,7 +706,16 @@ function parseOrderDate(dateStr) {
 
 function toLocalDateStr(d) {
   if (!d) return '';
-  return d.toLocaleDateString('en-CA'); // YYYY-MM-DD
+  return d.toLocaleDateString('en-CA', {timeZone:'Asia/Bangkok'}); // YYYY-MM-DD เวลาไทย
+}
+
+// เติม 0 หน้าเบอร์โทรที่หลุดจาก Google Sheets
+function formatPhone(phone) {
+  if (phone === null || phone === undefined || phone === '') return '—';
+  let p = phone.toString().replace(/[^\d]/g, '');
+  if (!p) return '—';
+  if (p.length === 9) p = '0' + p; // เบอร์ไทยที่หาย 0 หน้า (เหลือ 9 หลัก)
+  return p;
 }
 
 // ── RENDER ORDERS ──
@@ -696,7 +761,7 @@ function renderOrders() {
         <span class="status-badge ${getStatusClass(o.status)}" id="badge-${o.row}">${o.status}</span>
       </div>
       <div class="order-customer">👤 ${o.name}</div>
-      <div class="order-phone">📞 ${o.phone}</div>
+      <div class="order-phone">📞 ${formatPhone(o.phone)}</div>
       <div class="order-address">📍 ${o.address}</div>
       <div class="order-items">${itemsDisplay}</div>
       <div class="order-footer">
@@ -704,6 +769,7 @@ function renderOrders() {
         <div class="order-actions">
           <button class="edit-btn" onclick="event.stopPropagation();openEditOrder(${o.row})">✏️ แก้ไข</button>
           <button class="copy-btn" onclick="event.stopPropagation();copyOrderText(${o.row}, false)">📋 Copy</button>
+          <button class="label-btn" onclick="event.stopPropagation();openLabel(${o.row})" title="สร้างป้ายส่ง Peripage">🖨 ป้ายส่ง</button>
           ${currentRole === 'owner' ? `<button class="copy-btn copy-noprice-btn" onclick="event.stopPropagation();copyOrderText(${o.row}, true)" title="Copy ไม่มีราคา สำหรับลูกน้อง">📋 ไม่มีราคา</button>` : ''}
           <select class="status-select" onchange="updateStatus(${o.row}, this.value)">
             <option value="รอดำเนินการ" ${o.status==='รอดำเนินการ'?'selected':''}>รอดำเนินการ</option>
@@ -736,7 +802,7 @@ function copyOrderText(row, noPrice = false) {
 ─────────────────
 👤 ผู้สั่งซื้อ
 ชื่อ: ${o.name}
-เบอร์: ${o.phone}
+เบอร์: ${formatPhone(o.phone)}
 ที่อยู่: ${o.address}
 ─────────────────
 ${itemsText.trim()}${totalLine}`;
@@ -759,7 +825,7 @@ ${itemsText.trim()}${totalLine}`;
 
 function formatThaiDate(d) {
   if (!d) return '—';
-  return d.toLocaleString('th-TH', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  return d.toLocaleString('th-TH', {timeZone:'Asia/Bangkok',day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
 }
 
 // ── BULK SELECT ──
@@ -1502,6 +1568,148 @@ function qsCloseScanner() {
   if (qsStream) { qsStream.getTracks().forEach(t => t.stop()); qsStream = null; }
   document.getElementById('qsScanner').classList.remove('open');
   const b = document.getElementById('qsBarcode'); if (b) b.focus();
+}
+
+// ── PERIPAGE LABEL ──
+const LABEL_DEFAULT_SENDER = { name: 'พระจันทร์เภสัช', phone: '0942905564' };
+const LABEL_WIDTH = 384; // A6/A6+ = 48มม. = 384 dots (8 dots/มม.) เปลี่ยนเป็น 576 ถ้าใช้รุ่น 80มม.
+let labelRow = null;
+
+function openLabel(row) {
+  labelRow = row;
+  document.getElementById('lblSenderName').value = LABEL_DEFAULT_SENDER.name;
+  document.getElementById('lblSenderPhone').value = LABEL_DEFAULT_SENDER.phone;
+  document.getElementById('labelOverlay').classList.add('open');
+  renderLabel();
+}
+
+function closeLabel() {
+  document.getElementById('labelOverlay').classList.remove('open');
+  labelRow = null;
+}
+
+async function renderLabel() {
+  if (labelRow == null) return;
+  const o = allOrders.find(x => x.row === labelRow);
+  if (!o) return;
+  const senderName = document.getElementById('lblSenderName').value || '';
+  const senderPhone = document.getElementById('lblSenderPhone').value || '';
+
+  const W = LABEL_WIDTH, P = 22, contentW = W - 2 * P;
+  const canvas = document.getElementById('labelCanvas');
+  const ctx = canvas.getContext('2d');
+
+  try {
+    await Promise.all([
+      document.fonts.load('700 30px Sarabun'),
+      document.fonts.load('600 24px Sarabun'),
+      document.fonts.load('400 25px Sarabun'),
+    ]);
+  } catch(e) {}
+
+  function wrap(text, font, maxW) {
+    ctx.font = font;
+    const lines = [];
+    let line = '';
+    for (const ch of (text || '').toString()) {
+      if (ch === '\n') { lines.push(line); line = ''; continue; }
+      const test = line + ch;
+      if (ctx.measureText(test).width > maxW && line !== '') { lines.push(line); line = ch; }
+      else line = test;
+    }
+    if (line !== '') lines.push(line);
+    return lines.length ? lines : [''];
+  }
+
+  const styles = {
+    label:  { font:'600 18px Sarabun', lh:25, color:'#444' },
+    big:    { font:'700 30px Sarabun', lh:39, color:'#000' },
+    normal: { font:'400 25px Sarabun', lh:34, color:'#000' },
+    addr:   { font:'400 25px Sarabun', lh:34, color:'#000' },
+    send:   { font:'600 24px Sarabun', lh:33, color:'#000' },
+    send2:  { font:'400 23px Sarabun', lh:31, color:'#000' },
+    divider:{ lh:20 },
+  };
+
+  const blocks = [];
+  blocks.push({ s:'label', text:'ผู้รับ' });
+  wrap(o.name, styles.big.font, contentW).forEach(l => blocks.push({ s:'big', text:l }));
+  blocks.push({ s:'normal', text:'โทร ' + formatPhone(o.phone) });
+  wrap(o.address, styles.addr.font, contentW).forEach(l => blocks.push({ s:'addr', text:l }));
+  blocks.push({ s:'divider' });
+  blocks.push({ s:'label', text:'ผู้ส่ง' });
+  wrap(senderName, styles.send.font, contentW).forEach(l => blocks.push({ s:'send', text:l }));
+  blocks.push({ s:'send2', text:'โทร ' + senderPhone });
+
+  let H = P + 28;
+  blocks.forEach(b => H += styles[b.s].lh);
+  H += P;
+
+  canvas.width = W;
+  canvas.height = H;
+
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, W, H);
+  ctx.textBaseline = 'top';
+
+  ctx.font = '400 20px Sarabun';
+  ctx.fillStyle = '#666';
+  ctx.textAlign = 'right';
+  ctx.fillText('#' + o.row, W - P, P);
+  ctx.textAlign = 'left';
+
+  let y = P + 30;
+  blocks.forEach(b => {
+    const st = styles[b.s];
+    if (b.s === 'divider') {
+      y += 6;
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(P, y);
+      ctx.lineTo(W - P, y);
+      ctx.stroke();
+      y += st.lh - 6;
+      return;
+    }
+    ctx.font = st.font;
+    ctx.fillStyle = st.color;
+    ctx.fillText(b.text, P, y);
+    y += st.lh;
+  });
+}
+
+function printLabel() {
+  const canvas = document.getElementById('labelCanvas');
+  if (!canvas.width) { showToast('ยังไม่มีป้ายครับ'); return; }
+  const url = canvas.toDataURL('image/png');
+  const w = window.open('', '_blank');
+  if (!w) { showToast('เบราว์เซอร์บล็อกหน้าต่าง ลองใช้ "แชร์เข้าแอป" แทนครับ'); return; }
+  w.document.write('<html><head><title>ป้ายส่ง #' + labelRow + '</title>' +
+    '<style>@page{margin:0}body{margin:0;display:flex;justify-content:center}' +
+    'img{width:48mm;display:block}</style></head><body>' +
+    '<img src="' + url + '" onload="window.focus();window.print()"></body></html>');
+  w.document.close();
+}
+
+function shareLabel() {
+  const canvas = document.getElementById('labelCanvas');
+  if (!canvas.width) { showToast('ยังไม่มีป้ายครับ'); return; }
+  canvas.toBlob(async (blob) => {
+    if (!blob) { showToast('สร้างรูปไม่ได้ครับ'); return; }
+    const file = new File([blob], 'label-' + labelRow + '.png', { type:'image/png' });
+    try {
+      if (navigator.canShare && navigator.canShare({ files:[file] })) {
+        await navigator.share({ files:[file], title:'ป้ายส่ง Peripage' });
+      } else {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'label-' + labelRow + '.png';
+        document.body.appendChild(a); a.click(); a.remove();
+        showToast('บันทึกรูปแล้ว เปิดในแอป Peripage ได้เลยครับ');
+      }
+    } catch(e) {}
+  }, 'image/png');
 }
 
 // Auto login
