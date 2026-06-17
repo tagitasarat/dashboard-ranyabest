@@ -1635,14 +1635,14 @@ async function renderLabel() {
   };
 
   const blocks = [];
+  blocks.push({ s:'label', text:'ผู้ส่ง' });
+  wrap(senderName, styles.send.font, contentW).forEach(l => blocks.push({ s:'send', text:l }));
+  blocks.push({ s:'send2', text:'โทร ' + senderPhone });
+  blocks.push({ s:'divider' });
   blocks.push({ s:'label', text:'ผู้รับ' });
   wrap(o.name, styles.big.font, contentW).forEach(l => blocks.push({ s:'big', text:l }));
   blocks.push({ s:'normal', text:'โทร ' + formatPhone(o.phone) });
   wrap(o.address, styles.addr.font, contentW).forEach(l => blocks.push({ s:'addr', text:l }));
-  blocks.push({ s:'divider' });
-  blocks.push({ s:'label', text:'ผู้ส่ง' });
-  wrap(senderName, styles.send.font, contentW).forEach(l => blocks.push({ s:'send', text:l }));
-  blocks.push({ s:'send2', text:'โทร ' + senderPhone });
 
   let H = P + 28;
   blocks.forEach(b => H += styles[b.s].lh);
