@@ -227,6 +227,12 @@ header{background:var(--accent);padding:1rem 1.5rem;display:flex;align-items:cen
 .qs-qty input{width:48px;height:30px;text-align:center;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text);outline:none}
 .qs-exp{width:96px;height:30px;padding:0 8px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:12px;background:var(--surface);color:var(--text);outline:none;flex-shrink:0}
 .qs-del{background:none;border:none;color:var(--red);font-size:16px;cursor:pointer;flex-shrink:0}
+.sell-paste{width:100%;min-height:160px;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:inherit;font-size:14px;line-height:1.6;background:var(--surface);color:var(--text);outline:none;resize:vertical;margin-bottom:8px}
+.sell-paste:focus{border-color:var(--accent)}
+.sell-addr{width:100%;min-height:60px;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:var(--surface);color:var(--text);outline:none;resize:vertical}
+.sell-addr:focus{border-color:var(--accent)}
+.sell-item-text{flex:1;min-width:0;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:var(--surface);color:var(--text);outline:none}
+.sell-item-text:focus{border-color:var(--accent)}
 /* SCANNER OVERLAY */
 .qs-scanner{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;display:none;flex-direction:column;align-items:center;justify-content:center;padding:1rem}
 .qs-scanner.open{display:flex}
@@ -278,6 +284,7 @@ header{background:var(--accent);padding:1rem 1.5rem;display:flex;align-items:cen
   <!-- TABS -->
   <div class="tabs" id="tabBar">
     <button class="tab active" onclick="switchTab(&#39;orders&#39;)">📋 ออเดอร์</button>
+    <button class="tab" onclick="switchTab(&#39;sell&#39;)" id="sellTab">🧾 คีย์ขาย</button>
     <button class="tab" onclick="switchTab(&#39;quick&#39;)" id="quickTab">⚡ รับ/ตัด สต็อก</button>
     <button class="tab" onclick="switchTab(&#39;inventory&#39;)" id="inventoryTab">🏪 คลังสินค้า</button>
     <button class="tab" onclick="switchTab(&#39;transfer&#39;)" id="transferTab">📦 ส่งสาขา</button>
@@ -350,6 +357,47 @@ header{background:var(--accent);padding:1rem 1.5rem;display:flex;align-items:cen
         <div id="qsList"></div>
         <button class="submit-btn" id="qsSaveBtn" onclick="qsSave()">✅ บันทึกรับเข้าคลัง</button>
       </div>
+    </div>
+  </div>
+
+  <!-- SELL / คีย์ขาย TAB -->
+  <div class="tab-content" id="tab-sell">
+    <div class="content" style="padding-top:1.25rem">
+
+      <!-- วางข้อความจากไลน์ -->
+      <div class="form-section">
+        <h4>🧾 วางออเดอร์จากไลน์</h4>
+        <div class="qs-hint" style="margin-top:0">💡 คัดลอกข้อความที่ส่งในไลน์ (ชื่อ-ที่อยู่-เบอร์ แล้วเว้นบรรทัด ตามด้วยรายการยา) มาวางในช่องนี้ได้เลย ระบบจะแยกข้อมูลให้อัตโนมัติ — ไม่ต้องคีย์ทีละรายการ</div>
+        <textarea id="sellPaste" class="sell-paste" placeholder="วางข้อความจากไลน์ตรงนี้...
+
+ตัวอย่าง
+ร้านยาสยาม (สำนักงานใหญ่)
+190/11-12 ม.5 ต.สิชล อ.สิชล จ.นครศรีธรรมราช
+โทร 0897382958
+
+Jardiance 1 กล่อง
+Micardis 40mg 1 กล่อง"></textarea>
+        <button class="submit-btn" onclick="sellParse()">↧ แยกข้อมูลออเดอร์</button>
+      </div>
+
+      <!-- ผลที่แยกได้ (แก้ไขได้) -->
+      <div id="sellResult" class="form-section" style="display:none">
+        <h4>👤 ข้อมูลลูกค้า (สำหรับจัดส่ง · แก้ไขได้)</h4>
+        <div class="form-grid">
+          <div class="form-field" style="grid-column:1/-1"><label>ชื่อลูกค้า</label><input id="sellCusName" placeholder="ชื่อ / ชื่อร้าน"></div>
+          <div class="form-field" style="grid-column:1/-1"><label>เบอร์โทร</label><input id="sellCusPhone" inputmode="tel" placeholder="เบอร์ติดต่อ"></div>
+          <div class="form-field" style="grid-column:1/-1"><label>ที่อยู่จัดส่ง</label><textarea id="sellCusAddress" class="sell-addr" placeholder="ที่อยู่สำหรับจัดส่ง"></textarea></div>
+        </div>
+
+        <div class="qs-list-head" style="margin-top:6px">
+          <span id="sellListTitle">รายการขาย</span>
+          <button class="qs-add-btn" onclick="sellAddRow()">+ เพิ่มรายการ</button>
+        </div>
+        <div id="sellList"></div>
+
+        <button class="submit-btn" id="sellSaveBtn" onclick="sellSave()">✅ บันทึกเข้าระบบ + ตัดสต็อก</button>
+      </div>
+
     </div>
   </div>
 
@@ -640,6 +688,7 @@ function switchTab(tab) {
   document.getElementById('tab-' + tab).classList.add('active');
   event.target.classList.add('active');
   if (tab === 'stats') renderStats();
+  if (tab === 'sell') { sellLoadPrices(); setTimeout(() => { const b = document.getElementById('sellPaste'); if (b) b.focus(); }, 200); }
   if (tab === 'inventory') loadInventory();
   if (tab === 'transfer') { loadInventory(); loadTransferHistory(); }
   if (tab === 'requests') loadRequests();
@@ -1571,6 +1620,209 @@ function qsCloseScanner() {
   if (qsStream) { qsStream.getTracks().forEach(t => t.stop()); qsStream = null; }
   document.getElementById('qsScanner').classList.remove('open');
   const b = document.getElementById('qsBarcode'); if (b) b.focus();
+}
+
+// ════════════════════════════════════════════
+// 🧾 คีย์ขาย — วางออเดอร์จากไลน์ (พนักงานไม่เห็นราคาขาย)
+// ════════════════════════════════════════════
+// ใช้แคตตาล็อกที่มีราคา (เดียวกับหน้าแคตตาล็อกลูกค้า) เพื่อคิดยอด "เงียบ ๆ"
+// สำหรับบันทึกออเดอร์ + จับคู่ชื่อยาเพื่อตัดสต็อก — ไม่แสดงราคาให้พนักงานเห็น
+const SELL_PRICE_URL = 'https://script.google.com/macros/s/AKfycbw4FAQ43SmQEnQ4lIJ720D9fHvSGlxiY6cBtik-651jnwPO1ShT5T4Kj-W9eUr-taYw/exec';
+// ปลายทางบันทึกออเดอร์ (เดียวกับที่หน้าแคตตาล็อกส่งออเดอร์เข้าระบบ)
+const SELL_ORDER_URL = 'https://script.google.com/macros/s/AKfycbzKmSzS6J6gRzLySRH4fxSxJrR8VZCtOO0eDJ0YS7bfwFMb8NtcOgch9ksUBlzSo6qSgw/exec';
+
+let sellPriceData = [];     // [{name, price, unit}] โหลดเงียบ ๆ
+let sellPriceLoaded = false;
+let sellItems = [];         // [{text, qty}]  text = บรรทัดรายการตามที่ลูกค้าสั่ง
+
+function sellLoadPrices() {
+  if (sellPriceLoaded) return;
+  const cb = 'sellPriceCb_' + Date.now();
+  window[cb] = function(json) {
+    delete window[cb];
+    try {
+      sellPriceData = json
+        .filter(r => r.name && r.name.toString().trim() !== '')
+        .map(r => ({
+          name:  r.name.toString().trim(),
+          price: typeof r.price === 'number' ? r.price : parseFloat(r.price) || 0,
+          unit:  (r.unit || '').toString().trim()
+        }));
+      sellPriceLoaded = true;
+    } catch (e) {}
+  };
+  const s = document.createElement('script');
+  s.onerror = () => { delete window[cb]; };
+  s.src = SELL_PRICE_URL + '?callback=' + cb + '&t=' + Date.now();
+  document.head.appendChild(s);
+}
+
+// ── คิดราคาแบบขั้นบันได (เหมือนหน้าแคตตาล็อก) ──
+function sellMinQty(unit) { const m = (unit || '').toString().match(/^(\d+)/); return m ? parseInt(m[1]) : 1; }
+function sellUnitPrice(name, qty) {
+  const base = (name || '').trim();
+  const rows = sellPriceData.filter(d => d.name.trim() === base);
+  if (!rows.length) return 0;
+  if (rows.length === 1) return rows[0].price;
+  const tiers = rows.map(r => ({ price: r.price, minQty: sellMinQty(r.unit) })).sort((a, b) => a.minQty - b.minQty);
+  let best = tiers[0];
+  for (const t of tiers) { if (qty >= t.minQty) best = t; }
+  return best.minQty > 0 ? best.price / best.minQty : best.price;
+}
+
+// ── จับคู่บรรทัดรายการ → ชื่อยาในแคตตาล็อก (เผื่อตัดสต็อก/คิดราคา) ──
+function sellMatchName(line) {
+  const low = (line || '').toLowerCase();
+  let match = '';
+  for (const d of sellPriceData) {
+    const n = d.name.trim();
+    if (n && low.includes(n.toLowerCase()) && n.length > match.length) match = n;
+  }
+  return match; // '' = จับคู่ไม่ได้
+}
+
+// ── แยกข้อความที่วางมา → ลูกค้า + รายการ ──
+function sellParse() {
+  const raw = document.getElementById('sellPaste').value || '';
+  if (!raw.trim()) { showToast('วางข้อความก่อนนะครับ'); return; }
+
+  const lines = raw.replace(/\r/g, '').split('\n');
+  // หา "บรรทัดว่าง" ที่คั่นระหว่างบล็อกข้อมูลลูกค้ากับรายการยา
+  let splitIdx = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].trim() === '' && lines.slice(0, i).some(l => l.trim()) && lines.slice(i + 1).some(l => l.trim())) { splitIdx = i; break; }
+  }
+
+  let headerLines, itemLines;
+  if (splitIdx >= 0) {
+    headerLines = lines.slice(0, splitIdx).map(l => l.trim()).filter(Boolean);
+    itemLines   = lines.slice(splitIdx + 1).map(l => l.trim()).filter(Boolean);
+  } else {
+    // ไม่มีบรรทัดว่างคั่น → เดาจากบรรทัดที่ "หน้าตาเหมือนรายการยา"
+    const clean = lines.map(l => l.trim()).filter(Boolean);
+    const isItem = l => /\d/.test(l) && /(กล่อง|ขวด|หลอด|แผง|เม็ด|ซอง|ชิ้น|อัน|ตลับ|แคปซูล|กรัม|\bg\b|gm|mg|ml|cc|\bก\b)/i.test(l);
+    let firstItem = clean.findIndex(isItem);
+    // อย่าให้ที่อยู่/เบอร์โดนนับเป็นรายการ — ข้ามบรรทัดที่มีคำบอกที่อยู่/เบอร์
+    while (firstItem >= 0 && /(โทร|tel|เบอร์|เลขภาษี|ม\.\d|ต\.|อ\.|จ\.|ถนน|ซอย|ตำบล|อำเภอ|จังหวัด|บ้านเลขที่|\d{5}\b)/i.test(clean[firstItem])) {
+      firstItem = clean.findIndex((l, i) => i > firstItem && isItem(l));
+    }
+    if (firstItem < 0) firstItem = Math.min(3, clean.length);
+    headerLines = clean.slice(0, firstItem);
+    itemLines   = clean.slice(firstItem);
+  }
+
+  // ── แยกข้อมูลลูกค้า ──
+  let phone = '', name = '', addrLines = [];
+  headerLines.forEach((l, i) => {
+    const pm = l.match(/(0\d[\d\-\s]{7,12})/);
+    const isPhoneLine = /โทร|tel|เบอร์/i.test(l) || (pm && l.replace(/\D/g, '').length <= 11 && /^[\sโทรtel\.:เบอร์]*0[\d\-\s]+$/i.test(l));
+    if (isPhoneLine && pm) { phone = pm[1].replace(/[\s\-]/g, ''); return; }
+    if (i === 0) { name = l; return; }
+    addrLines.push(l);
+  });
+  // เผื่อกรณีเบอร์ปนอยู่ในบรรทัดที่อยู่
+  if (!phone) { const pm = raw.match(/(0\d[\d\-\s]{7,12})/); if (pm) phone = pm[1].replace(/[\s\-]/g, ''); }
+
+  document.getElementById('sellCusName').value = name;
+  document.getElementById('sellCusPhone').value = phone;
+  document.getElementById('sellCusAddress').value = addrLines.join('\n');
+
+  // ── รายการ ──
+  sellItems = itemLines.map(text => ({ text, qty: sellGuessQty(text) }));
+  document.getElementById('sellResult').style.display = 'block';
+  sellRender();
+  if (!sellItems.length) showToast('ไม่พบรายการยา ลองกด “+ เพิ่มรายการ” เองได้ครับ');
+}
+
+// เดาจำนวนหน่วยจากบรรทัด (best-effort) — ค่าเริ่มต้น 1 แก้ได้
+function sellGuessQty(text) {
+  // จับเลขที่ติดกับคำว่าจำนวน เช่น "1 กล่อง", "2กล่อง", "x3"
+  let m = text.match(/(\d+)\s*(?:กล่อง|ขวด|หลอด|แผง|ซอง|ชิ้น|อัน|ตลับ)/);
+  if (m) return Math.max(1, parseInt(m[1]));
+  m = text.match(/[x×]\s*(\d+)/i);
+  if (m) return Math.max(1, parseInt(m[1]));
+  return 1;
+}
+
+function sellAddRow() {
+  sellItems.push({ text: '', qty: 1 });
+  document.getElementById('sellResult').style.display = 'block';
+  sellRender();
+}
+function sellSetText(i, v) { if (sellItems[i]) sellItems[i].text = v; }
+function sellSetQty(i, v) { if (!sellItems[i]) return; const n = parseInt(v); sellItems[i].qty = (!isNaN(n) && n > 0) ? n : 1; sellRender(); }
+function sellAdjust(i, d) { if (!sellItems[i]) return; sellItems[i].qty = Math.max(1, sellItems[i].qty + d); sellRender(); }
+function sellRemove(i) { sellItems.splice(i, 1); sellRender(); }
+
+function sellRender() {
+  const list = document.getElementById('sellList');
+  list.innerHTML = sellItems.map((it, i) => `<div class="qs-item">
+      <input class="sell-item-text" value="${(it.text || '').replace(/"/g, '&quot;')}" placeholder="ชื่อยา / รายการ" onchange="sellSetText(${i}, this.value)">
+      <div class="qs-qty">
+        <button onclick="sellAdjust(${i},-1)">−</button>
+        <input type="number" min="1" value="${it.qty}" onchange="sellSetQty(${i}, this.value)" title="จำนวนหน่วยสำหรับตัดสต็อก">
+        <button onclick="sellAdjust(${i},1)">+</button>
+      </div>
+      <button class="qs-del" onclick="sellRemove(${i})">🗑</button>
+    </div>`).join('');
+  const totalQty = sellItems.reduce((s, it) => s + (it.qty || 0), 0);
+  document.getElementById('sellListTitle').textContent = `รายการขาย (${sellItems.length} รายการ · ${totalQty} หน่วย)`;
+}
+
+async function sellSave() {
+  const name = document.getElementById('sellCusName').value.trim();
+  const phone = document.getElementById('sellCusPhone').value.trim();
+  const address = document.getElementById('sellCusAddress').value.trim();
+  const items = sellItems.filter(it => (it.text || '').trim());
+  if (!items.length) { showToast('ยังไม่มีรายการขายครับ'); return; }
+  if (!name || !phone || !address) { showToast('กรอกชื่อ/เบอร์/ที่อยู่ลูกค้าให้ครบนะครับ'); return; }
+  if (!confirm(`บันทึกการขายให้ "${name}" (${items.length} รายการ) เข้าระบบ?`)) return;
+
+  const btn = document.getElementById('sellSaveBtn');
+  btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
+
+  // ข้อความรายการสำหรับบันทึกออเดอร์ — เก็บตามที่ลูกค้าสั่งไว้ (ตรงกับที่ใช้แพ็ก/ปริ้น)
+  // คิดยอดเงียบ ๆ จากแคตตาล็อก (ถ้าจับคู่ชื่อได้) — ไม่แสดงราคาให้พนักงานเห็น
+  let total = 0, matched = 0;
+  const itemsText = items.map((it, idx) => {
+    const mName = sellMatchName(it.text);
+    if (mName) { total += sellUnitPrice(mName, it.qty) * it.qty; matched++; }
+    return `${idx + 1}. ${it.text.trim()}`;
+  }).join('\n');
+  const totalStr = (matched === items.length && total > 0) ? total.toLocaleString() + ' ฿' : '';
+
+  // 1) บันทึกออเดอร์เข้าระบบ
+  try {
+    await fetch(SELL_ORDER_URL, {
+      method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, phone, address, items: itemsText, total: totalStr })
+    });
+  } catch (e) {}
+
+  // 2) ตัดสต็อกอัตโนมัติ (best-effort — ถ้าจับคู่ชื่อไม่ได้/ของไม่มีก็ปล่อยผ่าน)
+  for (const it of items) {
+    const mName = sellMatchName(it.text);
+    if (!mName) continue;
+    try {
+      await fetch(INV_URL, {
+        method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'deduct', name: mName, qty: it.qty, note: 'คีย์ขาย' })
+      });
+    } catch (e) {}
+  }
+
+  // เคลียร์ฟอร์ม
+  sellItems = [];
+  document.getElementById('sellPaste').value = '';
+  document.getElementById('sellCusName').value = '';
+  document.getElementById('sellCusPhone').value = '';
+  document.getElementById('sellCusAddress').value = '';
+  document.getElementById('sellResult').style.display = 'none';
+  sellRender();
+  stockData = []; // ให้โหลดสต็อกใหม่เมื่อเข้าไปดู
+  btn.disabled = false; btn.textContent = '✅ บันทึกเข้าระบบ + ตัดสต็อก';
+  showToast('✅ บันทึกการขายเข้าระบบแล้วครับ');
+  const b = document.getElementById('sellPaste'); if (b) b.focus();
 }
 
 // ── PERIPAGE LABEL ──
