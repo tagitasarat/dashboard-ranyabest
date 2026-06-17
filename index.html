@@ -652,7 +652,10 @@ async function loadOrders() {
   try {
     const res = await fetch(`${ADMIN_URL}?action=getOrders`);
     const data = await res.json();
-    allOrders = data.reverse();
+    // กรองแถวว่างออก: ถ้าไม่มีทั้งชื่อ เบอร์ ที่อยู่ และรายการยา ถือว่าเป็นแถวเปล่า ไม่ต้องแสดง
+    allOrders = data.filter(o =>
+      [o.name, o.phone, o.address, o.items].some(v => v != null && v.toString().trim() !== '')
+    ).reverse();
     updateStats();
     renderOrders();
   } catch(e) {
