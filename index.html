@@ -231,8 +231,19 @@ header{background:var(--accent);padding:1rem 1.5rem;display:flex;align-items:cen
 .sell-paste:focus{border-color:var(--accent)}
 .sell-addr{width:100%;min-height:60px;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:var(--surface);color:var(--text);outline:none;resize:vertical}
 .sell-addr:focus{border-color:var(--accent)}
+.sell-row{padding:10px 0;border-bottom:1px solid var(--row-border,#F0EDE8)}
+.sell-row:last-of-type{border-bottom:none}
+.sell-row-top{display:flex;align-items:center;gap:8px}
+.sell-row-bot{display:flex;align-items:center;gap:8px;margin-top:6px}
 .sell-item-text{flex:1;min-width:0;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:var(--surface);color:var(--text);outline:none}
 .sell-item-text:focus{border-color:var(--accent)}
+.sell-match{flex:1;min-width:0;padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:12px;background:var(--surface);color:var(--text);outline:none}
+.sell-match:focus{border-color:var(--accent)}
+.sell-match.ok{border-color:var(--accent)}
+.sell-match.warn{border-color:var(--orange);background:rgba(230,81,0,.06)}
+.sell-tag{font-size:11px;flex-shrink:0;white-space:nowrap}
+.sell-tag.ok{color:var(--accent)}
+.sell-tag.warn{color:var(--orange)}
 /* SCANNER OVERLAY */
 .qs-scanner{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;display:none;flex-direction:column;align-items:center;justify-content:center;padding:1rem}
 .qs-scanner.open{display:flex}
@@ -393,7 +404,9 @@ Micardis 40mg 1 กล่อง"></textarea>
           <span id="sellListTitle">รายการขาย</span>
           <button class="qs-add-btn" onclick="sellAddRow()">+ เพิ่มรายการ</button>
         </div>
+        <div class="qs-hint" style="margin:2px 2px 8px">🔗 ระบบเดา “ยาในระบบ” ให้แต่ละบรรทัดอัตโนมัติ (ไว้ตัดสต็อก/คิดยอด) — ถ้าจับคู่ผิดหรือขึ้น ⚠️ ให้แตะเลือกใหม่ได้ ส่วนข้อความออเดอร์ยังเก็บตามที่ลูกค้าพิมพ์</div>
         <div id="sellList"></div>
+        <datalist id="sellCatalogList"></datalist>
 
         <button class="submit-btn" id="sellSaveBtn" onclick="sellSave()">✅ บันทึกเข้าระบบ + ตัดสต็อก</button>
       </div>
@@ -1649,6 +1662,12 @@ function sellLoadPrices() {
           unit:  (r.unit || '').toString().trim()
         }));
       sellPriceLoaded = true;
+      // เติมรายชื่อยาในระบบลง datalist (ตัดชื่อซ้ำ) ไว้ให้เลือกจับคู่
+      const seen = {}, opts = [];
+      sellPriceData.forEach(d => { if (!seen[d.name]) { seen[d.name] = 1; opts.push(`<option value="${d.name.replace(/"/g,'&quot;')}">`); } });
+      const dl = document.getElementById('sellCatalogList');
+      if (dl) dl.innerHTML = opts.join('');
+      if (sellItems.length) { sellItems.forEach(it => { if (!it.match) it.match = sellMatchName(it.text); }); sellRender(); }
     } catch (e) {}
   };
   const s = document.createElement('script');
@@ -1670,15 +1689,56 @@ function sellUnitPrice(name, qty) {
   return best.minQty > 0 ? best.price / best.minQty : best.price;
 }
 
-// ── จับคู่บรรทัดรายการ → ชื่อยาในแคตตาล็อก (เผื่อตัดสต็อก/คิดราคา) ──
-function sellMatchName(line) {
-  const low = (line || '').toLowerCase();
-  let match = '';
-  for (const d of sellPriceData) {
-    const n = d.name.trim();
-    if (n && low.includes(n.toLowerCase()) && n.length > match.length) match = n;
+// ── จับคู่บรรทัดที่ลูกค้าพิมพ์ → ชื่อยาในระบบ แบบใกล้เคียง (fuzzy) ──
+// คำที่ไม่ช่วยแยกความต่าง (หน่วย/บรรจุ) — ตัดทิ้งตอนหาโทเคน
+const SELL_STOP = /^(\d+|x|กล่อง|ขวด|หลอด|แผง|เม็ด|ซอง|ชิ้น|อัน|ตลับ|แคปซูล|cap|caps|tab|tabs|tablet|tablets|กรัม|g|gm|gram|mg|mcg|ml|cc|ก|และ|จำนวน)$/i;
+function sellTokens(s) {
+  return (s || '').toString().toLowerCase()
+    .replace(/[()฿,]/g, ' ')
+    .replace(/(\d+)\s*(mg|mcg|g|gm|gram|ml|cc)/gi, '$1$2') // รวมความแรงให้ติดกัน เช่น "40 mg" → "40mg"
+    .split(/[\s/]+/).map(t => t.trim()).filter(t => t && !SELL_STOP.test(t));
+}
+// ระยะแก้ไข (Levenshtein) แบบจำกัด — ไว้จับคำที่พิมพ์ผิด/ต่างนิดหน่อย
+function sellEdit(a, b) {
+  const m = a.length, n = b.length;
+  if (Math.abs(m - n) > 2) return 99;
+  let prev = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) {
+    const cur = [i];
+    for (let j = 1; j <= n; j++) {
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    }
+    prev = cur;
   }
-  return match; // '' = จับคู่ไม่ได้
+  return prev[n];
+}
+// ตรงกันแบบยืดหยุ่น (เผื่อพิมพ์ตก/ต่างตัวอักษร เช่น hirudoil ↔ hirudoid)
+function sellTokMatch(a, b) {
+  if (!a || !b) return false;
+  if (a === b) return true;
+  if (a.length >= 4 && b.length >= 4 && (a.startsWith(b) || b.startsWith(a))) return true;
+  if (a.length >= 5 && b.includes(a)) return true;
+  if (b.length >= 5 && a.includes(b)) return true;
+  if (a.length >= 6 && b.length >= 6 && sellEdit(a, b) <= 1) return true;
+  if (a.length >= 8 && b.length >= 8 && sellEdit(a, b) <= 2) return true;
+  return false;
+}
+function sellMatchName(line) {
+  const lt = sellTokens(line);
+  if (!lt.length || !sellPriceData.length) return '';
+  let best = '', bestScore = 0;
+  for (const d of sellPriceData) {
+    const ct = sellTokens(d.name);
+    if (!ct.length) continue;
+    const brand = ct[0];
+    // ต้องเจอ "แบรนด์" (โทเคนแรกของชื่อในระบบ) ในบรรทัดก่อน ถึงจะนับ
+    if (!lt.some(t => sellTokMatch(t, brand))) continue;
+    let score = 2; // เจอแบรนด์
+    for (const c of ct.slice(1)) if (lt.some(t => sellTokMatch(t, c))) score += 1;
+    // เลือกตัวที่ตรงมากสุด ถ้าเท่ากันเอาชื่อสั้นกว่า (เจาะจงน้อยกว่า/ทั่วไปกว่า)
+    if (score > bestScore || (score === bestScore && best && d.name.length < best.length)) { bestScore = score; best = d.name; }
+  }
+  return best; // '' = จับคู่ไม่ได้
 }
 
 // ── แยกข้อความที่วางมา → ลูกค้า + รายการ ──
@@ -1727,8 +1787,8 @@ function sellParse() {
   document.getElementById('sellCusPhone').value = phone;
   document.getElementById('sellCusAddress').value = addrLines.join('\n');
 
-  // ── รายการ ──
-  sellItems = itemLines.map(text => ({ text, qty: sellGuessQty(text) }));
+  // ── รายการ ── (เดาจับคู่ยาในระบบให้ด้วย)
+  sellItems = itemLines.map(text => ({ text, qty: sellGuessQty(text), match: sellMatchName(text) }));
   document.getElementById('sellResult').style.display = 'block';
   sellRender();
   if (!sellItems.length) showToast('ไม่พบรายการยา ลองกด “+ เพิ่มรายการ” เองได้ครับ');
@@ -1745,28 +1805,45 @@ function sellGuessQty(text) {
 }
 
 function sellAddRow() {
-  sellItems.push({ text: '', qty: 1 });
+  sellItems.push({ text: '', qty: 1, match: '' });
   document.getElementById('sellResult').style.display = 'block';
   sellRender();
 }
-function sellSetText(i, v) { if (sellItems[i]) sellItems[i].text = v; }
+function sellSetText(i, v) {
+  if (!sellItems[i]) return;
+  sellItems[i].text = v;
+  sellItems[i].match = sellMatchName(v); // ลองจับคู่ใหม่เมื่อแก้ข้อความ
+  sellRender();
+}
+function sellSetMatch(i, v) { if (sellItems[i]) { sellItems[i].match = (v || '').trim(); sellRender(); } }
 function sellSetQty(i, v) { if (!sellItems[i]) return; const n = parseInt(v); sellItems[i].qty = (!isNaN(n) && n > 0) ? n : 1; sellRender(); }
 function sellAdjust(i, d) { if (!sellItems[i]) return; sellItems[i].qty = Math.max(1, sellItems[i].qty + d); sellRender(); }
 function sellRemove(i) { sellItems.splice(i, 1); sellRender(); }
 
 function sellRender() {
   const list = document.getElementById('sellList');
-  list.innerHTML = sellItems.map((it, i) => `<div class="qs-item">
-      <input class="sell-item-text" value="${(it.text || '').replace(/"/g, '&quot;')}" placeholder="ชื่อยา / รายการ" onchange="sellSetText(${i}, this.value)">
-      <div class="qs-qty">
-        <button onclick="sellAdjust(${i},-1)">−</button>
-        <input type="number" min="1" value="${it.qty}" onchange="sellSetQty(${i}, this.value)" title="จำนวนหน่วยสำหรับตัดสต็อก">
-        <button onclick="sellAdjust(${i},1)">+</button>
+  list.innerHTML = sellItems.map((it, i) => {
+    const ok = !!it.match;
+    return `<div class="sell-row">
+      <div class="sell-row-top">
+        <input class="sell-item-text" value="${(it.text || '').replace(/"/g, '&quot;')}" placeholder="รายการตามที่ลูกค้าพิมพ์" onchange="sellSetText(${i}, this.value)">
+        <button class="qs-del" onclick="sellRemove(${i})">🗑</button>
       </div>
-      <button class="qs-del" onclick="sellRemove(${i})">🗑</button>
-    </div>`).join('');
+      <div class="sell-row-bot">
+        <span class="sell-tag ${ok ? 'ok' : 'warn'}">${ok ? '🔗' : '⚠️'}</span>
+        <input class="sell-match ${ok ? 'ok' : 'warn'}" list="sellCatalogList" value="${(it.match || '').replace(/"/g, '&quot;')}" placeholder="เลือกยาในระบบ (ไว้ตัดสต็อก/คิดยอด)" onchange="sellSetMatch(${i}, this.value)">
+        <div class="qs-qty">
+          <button onclick="sellAdjust(${i},-1)">−</button>
+          <input type="number" min="1" value="${it.qty}" onchange="sellSetQty(${i}, this.value)" title="จำนวนหน่วยสำหรับตัดสต็อก">
+          <button onclick="sellAdjust(${i},1)">+</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
   const totalQty = sellItems.reduce((s, it) => s + (it.qty || 0), 0);
-  document.getElementById('sellListTitle').textContent = `รายการขาย (${sellItems.length} รายการ · ${totalQty} หน่วย)`;
+  const unmatched = sellItems.filter(it => (it.text || '').trim() && !it.match).length;
+  document.getElementById('sellListTitle').textContent =
+    `รายการขาย (${sellItems.length} รายการ · ${totalQty} หน่วย)` + (unmatched ? ` · ⚠️ ยังไม่จับคู่ ${unmatched}` : '');
 }
 
 async function sellSave() {
@@ -1776,20 +1853,21 @@ async function sellSave() {
   const items = sellItems.filter(it => (it.text || '').trim());
   if (!items.length) { showToast('ยังไม่มีรายการขายครับ'); return; }
   if (!name || !phone || !address) { showToast('กรอกชื่อ/เบอร์/ที่อยู่ลูกค้าให้ครบนะครับ'); return; }
-  if (!confirm(`บันทึกการขายให้ "${name}" (${items.length} รายการ) เข้าระบบ?`)) return;
+  const unmatched = items.filter(it => !it.match).length;
+  const warn = unmatched ? `\n\n⚠️ มี ${unmatched} รายการที่ยังจับคู่ยาในระบบไม่ได้ — รายการนั้นจะบันทึกออเดอร์ปกติ แต่จะไม่ตัดสต็อกให้` : '';
+  if (!confirm(`บันทึกการขายให้ "${name}" (${items.length} รายการ) เข้าระบบ?${warn}`)) return;
 
   const btn = document.getElementById('sellSaveBtn');
   btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
 
   // ข้อความรายการสำหรับบันทึกออเดอร์ — เก็บตามที่ลูกค้าสั่งไว้ (ตรงกับที่ใช้แพ็ก/ปริ้น)
-  // คิดยอดเงียบ ๆ จากแคตตาล็อก (ถ้าจับคู่ชื่อได้) — ไม่แสดงราคาให้พนักงานเห็น
-  let total = 0, matched = 0;
+  // คิดยอดเงียบ ๆ จากยาในระบบที่จับคู่ไว้ — ไม่แสดงราคาให้พนักงานเห็น
+  let total = 0, priced = 0;
   const itemsText = items.map((it, idx) => {
-    const mName = sellMatchName(it.text);
-    if (mName) { total += sellUnitPrice(mName, it.qty) * it.qty; matched++; }
+    if (it.match) { total += sellUnitPrice(it.match, it.qty) * it.qty; priced++; }
     return `${idx + 1}. ${it.text.trim()}`;
   }).join('\n');
-  const totalStr = (matched === items.length && total > 0) ? total.toLocaleString() + ' ฿' : '';
+  const totalStr = (priced === items.length && total > 0) ? total.toLocaleString() + ' ฿' : '';
 
   // 1) บันทึกออเดอร์เข้าระบบ
   try {
@@ -1799,14 +1877,13 @@ async function sellSave() {
     });
   } catch (e) {}
 
-  // 2) ตัดสต็อกอัตโนมัติ (best-effort — ถ้าจับคู่ชื่อไม่ได้/ของไม่มีก็ปล่อยผ่าน)
+  // 2) ตัดสต็อกอัตโนมัติ (best-effort — จับคู่ยาในระบบไม่ได้/ของไม่มีก็ปล่อยผ่าน)
   for (const it of items) {
-    const mName = sellMatchName(it.text);
-    if (!mName) continue;
+    if (!it.match) continue;
     try {
       await fetch(INV_URL, {
         method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'deduct', name: mName, qty: it.qty, note: 'คีย์ขาย' })
+        body: JSON.stringify({ action: 'deduct', name: it.match, qty: it.qty, note: 'คีย์ขาย' })
       });
     } catch (e) {}
   }
