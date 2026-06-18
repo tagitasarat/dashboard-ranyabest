@@ -1754,27 +1754,30 @@ function sellMatchName(line) {
 }
 
 // ── แยกข้อความที่วางมา → ลูกค้า + รายการ ──
+// รองรับหลายบล็อก (คั่นด้วยบรรทัดว่าง) เช่น ฟอร์แมตฝากส่ง: ผู้ส่ง → ผู้รับ → รายการ
 function sellParse() {
   const raw = document.getElementById('sellPaste').value || '';
   if (!raw.trim()) { showToast('วางข้อความก่อนนะครับ'); return; }
+  const norm = raw.replace(/\r/g, '');
+  // แบ่งเป็นบล็อกด้วยบรรทัดว่าง
+  const blocks = norm.split(/\n\s*\n/).map(b => b.split('\n').map(l => l.trim()).filter(Boolean)).filter(b => b.length);
+  if (!blocks.length) { showToast('ไม่พบข้อมูล'); return; }
 
-  const lines = raw.replace(/\r/g, '').split('\n');
-  // หา "บรรทัดว่าง" ที่คั่นระหว่างบล็อกข้อมูลลูกค้ากับรายการยา
-  let splitIdx = -1;
-  for (let i = 0; i < lines.length; i++) {
-    if (lines[i].trim() === '' && lines.slice(0, i).some(l => l.trim()) && lines.slice(i + 1).some(l => l.trim())) { splitIdx = i; break; }
-  }
-
-  let headerLines, itemLines;
-  if (splitIdx >= 0) {
-    headerLines = lines.slice(0, splitIdx).map(l => l.trim()).filter(Boolean);
-    itemLines   = lines.slice(splitIdx + 1).map(l => l.trim()).filter(Boolean);
+  let headerLines = [], itemLines = [];
+  if (blocks.length >= 2) {
+    // บล็อกสุดท้าย = รายการยา
+    itemLines = blocks[blocks.length - 1];
+    const rest = blocks.slice(0, -1);
+    // ตัดบล็อก "ผู้ส่ง" ออก (เราส่งให้ "ผู้รับ")
+    const isSender = b => /(^|\s)ผู้ส่ง|^จาก[\s:：]|sender|^from[\s:：]/i.test(b.join(' '));
+    const cand = rest.filter(b => !isSender(b));
+    // เลือกบล็อกผู้รับ: มีคำว่า กรุณาส่ง/ผู้รับ/ส่งให้ ก่อน ไม่งั้นเอาบล็อกที่ใกล้รายการสุด
+    headerLines = cand.find(b => /กรุณาส่ง|ผู้รับ|ส่งให้|ส่งถึง|ส่งคุณ|จัดส่ง/i.test(b.join(' '))) || cand[cand.length - 1] || [];
   } else {
-    // ไม่มีบรรทัดว่างคั่น → เดาจากบรรทัดที่ "หน้าตาเหมือนรายการยา"
-    const clean = lines.map(l => l.trim()).filter(Boolean);
+    // บล็อกเดียว ไม่มีบรรทัดว่างคั่น → เดาจากบรรทัดที่ "หน้าตาเหมือนรายการยา"
+    const clean = blocks[0];
     const isItem = l => /\d/.test(l) && /(กล่อง|ขวด|หลอด|แผง|เม็ด|ซอง|ชิ้น|อัน|ตลับ|แคปซูล|กรัม|\bg\b|gm|mg|ml|cc|\bก\b)/i.test(l);
     let firstItem = clean.findIndex(isItem);
-    // อย่าให้ที่อยู่/เบอร์โดนนับเป็นรายการ — ข้ามบรรทัดที่มีคำบอกที่อยู่/เบอร์
     while (firstItem >= 0 && /(โทร|tel|เบอร์|เลขภาษี|ม\.\d|ต\.|อ\.|จ\.|ถนน|ซอย|ตำบล|อำเภอ|จังหวัด|บ้านเลขที่|\d{5}\b)/i.test(clean[firstItem])) {
       firstItem = clean.findIndex((l, i) => i > firstItem && isItem(l));
     }
@@ -1783,27 +1786,35 @@ function sellParse() {
     itemLines   = clean.slice(firstItem);
   }
 
-  // ── แยกข้อมูลลูกค้า ──
-  let phone = '', name = '', addrLines = [];
-  headerLines.forEach((l, i) => {
-    const pm = l.match(/(0\d[\d\-\s]{7,12})/);
-    const isPhoneLine = /โทร|tel|เบอร์/i.test(l) || (pm && l.replace(/\D/g, '').length <= 11 && /^[\sโทรtel\.:เบอร์]*0[\d\-\s]+$/i.test(l));
-    if (isPhoneLine && pm) { phone = pm[1].replace(/[\s\-]/g, ''); return; }
-    if (i === 0) { name = l; return; }
-    addrLines.push(l);
-  });
-  // เผื่อกรณีเบอร์ปนอยู่ในบรรทัดที่อยู่
-  if (!phone) { const pm = raw.match(/(0\d[\d\-\s]{7,12})/); if (pm) phone = pm[1].replace(/[\s\-]/g, ''); }
-
-  document.getElementById('sellCusName').value = name;
-  document.getElementById('sellCusPhone').value = phone;
-  document.getElementById('sellCusAddress').value = addrLines.join('\n');
+  const cust = sellParseCustomer(headerLines);
+  document.getElementById('sellCusName').value = cust.name;
+  document.getElementById('sellCusPhone').value = cust.phone;
+  document.getElementById('sellCusAddress').value = cust.address;
 
   // ── รายการ ── (เดาจับคู่ยาในระบบให้ด้วย)
   sellItems = itemLines.map(text => ({ text, qty: sellGuessQty(text), match: sellMatchName(text) }));
   document.getElementById('sellResult').style.display = 'block';
   sellRender();
   if (!sellItems.length) showToast('ไม่พบรายการยา ลองกด “+ เพิ่มรายการ” เองได้ครับ');
+}
+
+// แยกชื่อ/เบอร์/ที่อยู่ จากบล็อกข้อมูลลูกค้า
+function sellParseCustomer(lines) {
+  let phone = '', name = '', addr = [];
+  for (const l of lines) { const pm = l.match(/(0\d[\d\-\s]{7,12})/); if (pm) { phone = pm[1].replace(/[\s\-]/g, ''); break; } }
+  lines.forEach((l, i) => {
+    // ตัดเบอร์ (พร้อมป้าย โทร/tel/เบอร์) ออกจากบรรทัด
+    let line = l.replace(/(โทร\.?|tel\.?|เบอร์)?\s*0\d[\d\-\s]{7,12}/i, '').replace(/(โทร\.?|tel\.?|เบอร์)\s*$/i, '').trim();
+    if (i === 0) {
+      // ตัดป้ายนำหน้าชื่อผู้รับออก เช่น "กรุณาส่ง คุณโบว์" → "คุณโบว์"
+      name = line.replace(/^(กรุณาส่ง|ส่งให้|ส่งถึง|ส่งคุณ|ผู้รับ|ชื่อผู้รับ|ชื่อ|name)\s*[:：]?\s*/i, '').trim();
+      return;
+    }
+    if (line) addr.push(line);
+  });
+  // ถ้าบรรทัดแรกเป็นแค่ป้ายกำกับจนชื่อว่าง → เลื่อนบรรทัดถัดไปมาเป็นชื่อ
+  if (!name && addr.length) name = addr.shift();
+  return { name, phone, address: addr.join('\n') };
 }
 
 // เดาจำนวนหน่วยจากบรรทัด (best-effort) — ค่าเริ่มต้น 1 แก้ได้
