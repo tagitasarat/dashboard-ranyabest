@@ -1722,8 +1722,8 @@ function sellUnitPrice(name, qty) {
 }
 
 // ── จับคู่บรรทัดที่ลูกค้าพิมพ์ → ชื่อยาในระบบ แบบใกล้เคียง (fuzzy) ──
-// คำที่ไม่ช่วยแยกความต่าง (หน่วย/บรรจุ) — ตัดทิ้งตอนหาโทเคน
-const SELL_STOP = /^(\d+|x|กล่อง|ขวด|หลอด|แผง|เม็ด|ซอง|ชิ้น|อัน|ตลับ|แคปซูล|cap|caps|tab|tabs|tablet|tablets|กรัม|g|gm|gram|mg|mcg|ml|cc|ก|และ|จำนวน)$/i;
+// คำที่ไม่ช่วยแยกความต่าง (หน่วย/บรรจุ) — ตัดทิ้งตอนหาโทเคน (เก็บตัวเลขไว้ช่วยแยกความแรง เช่น 15/30)
+const SELL_STOP = /^(x|กล่อง|ขวด|หลอด|แผง|เม็ด|ซอง|ชิ้น|อัน|ตลับ|แคปซูล|cap|caps|tab|tabs|tablet|tablets|กรัม|g|gm|gram|mg|mcg|ml|cc|ก|และ|จำนวน)$/i;
 function sellTokens(s) {
   return (s || '').toString().toLowerCase()
     .replace(/[()฿,]/g, ' ')
@@ -1748,6 +1748,10 @@ function sellEdit(a, b) {
 function sellTokMatch(a, b) {
   if (!a || !b) return false;
   if (a === b) return true;
+  // โทเคนตัวเลข (ความแรง) — เทียบเฉพาะส่วนเลขนำหน้า เช่น "30" ↔ "30mg"
+  const na = a.match(/^\d+/), nb = b.match(/^\d+/);
+  if (na && nb) return na[0] === nb[0];
+  if (na || nb) return false; // เลข กับ ไม่ใช่เลข ถือว่าไม่ตรง
   if (a.length >= 4 && b.length >= 4 && (a.startsWith(b) || b.startsWith(a))) return true;
   if (a.length >= 5 && b.includes(a)) return true;
   if (b.length >= 5 && a.includes(b)) return true;
