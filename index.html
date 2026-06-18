@@ -1899,23 +1899,15 @@ function sellParseSender(lines) {
   return { name: parts.join(' ').trim(), phone };
 }
 
-// เดาจำนวนหน่วยจากบรรทัด (best-effort) — ค่าเริ่มต้น 1 แก้ได้
+// เดาจำนวนจากบรรทัด — ตรรกะ: "เลขตัวสุดท้ายในบรรทัด = จำนวน" เสมอ
+// ยกเว้นเลขที่เป็นความแรงยา (เช่น 40mg, 10g) หรือขนาดแพ็กในชื่อ (เช่น 10x10) ที่ชัดเจนว่าไม่ใช่จำนวน
 function sellGuessQty(text) {
   const s = (text || '').toString();
-  // 1) เลขที่ติดกับหน่วยนับ เช่น "2 กล่อง", "5 หลอด", "2 กป", "2 ก" (เอาตัวท้ายสุด) — "ก" เดี่ยว = กล่อง
-  const um = [...s.matchAll(/(\d+)\s*(?:กล่อง|ขวด|หลอด|แผง|ซอง|ชิ้น|อัน|ตลับ|แคปซูล|กป|ก(?=\s|$))/g)];
-  if (um.length) return Math.max(1, parseInt(um[um.length - 1][1]));
-  // 2) "xN" หรือ "×N" ที่เป็นคำโดด (ไม่ใช่ขนาดแพ็กเช่น 10x10)
-  let m = s.match(/(?:^|\s)[x×]\s*(\d+)/i);
-  if (m) return Math.max(1, parseInt(m[1]));
-  // 3) เลขหลังเครื่องหมาย "=" เช่น "Duocetz = 2"
-  m = s.match(/=\s*(\d+)\b/);
-  if (m) return Math.max(1, parseInt(m[1]));
-  // 4) เลขท้ายบรรทัด (มีช่องว่างนำหน้า) = จำนวน เช่น "Rhinocort 12"
-  //    เฉพาะค่าน้อยกว่า 100 (กันสับสนกับราคา เช่น 540) และไม่ใช่ความแรงยา
-  m = s.match(/(?:^|\s)(\d+)\s*$/);
-  if (m && parseInt(m[1]) < 100 && !/\d+\s*(?:mg|mcg|g|gm|gram|ml|cc|%|tab|tabs|tablet|tablets)\s*$/i.test(s)) return Math.max(1, parseInt(m[1]));
-  return 1;
+  const masked = s
+    .replace(/\d+(?:\.\d+)?\s*(?:mg|mcg|g|gm|gram|ml|cc|%)\b/gi, ' ') // ความแรงยา
+    .replace(/\d+\s*[x×]\s*\d+/gi, ' ');                              // ขนาดแพ็ก NxN
+  const nums = masked.match(/\d+/g);
+  return nums && nums.length ? Math.max(1, parseInt(nums[nums.length - 1])) : 1;
 }
 
 function sellAddRow() {
