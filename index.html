@@ -244,6 +244,9 @@ header{background:var(--accent);padding:1rem 1.5rem;display:flex;align-items:cen
 .sell-tag{font-size:11px;flex-shrink:0;white-space:nowrap}
 .sell-tag.ok{color:var(--accent)}
 .sell-tag.warn{color:var(--orange)}
+.sell-price{font-size:12px;font-weight:600;color:var(--accent);flex-shrink:0;min-width:62px;text-align:right}
+.sell-price.muted{color:var(--muted);font-weight:400}
+.sell-total{text-align:right;font-size:15px;font-weight:700;color:var(--accent);margin:10px 2px 0}
 /* SCANNER OVERLAY */
 .qs-scanner{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;display:none;flex-direction:column;align-items:center;justify-content:center;padding:1rem}
 .qs-scanner.open{display:flex}
@@ -407,6 +410,7 @@ Micardis 40mg 1 กล่อง"></textarea>
         <div class="qs-hint" style="margin:2px 2px 8px">🔗 ระบบเดา “ยาในระบบ” ให้แต่ละบรรทัดอัตโนมัติ — ถ้าจับคู่ผิดหรือขึ้น ⚠️ ให้แตะเลือกใหม่ได้ ออเดอร์ที่บันทึกจะใช้ “ชื่อยาในระบบ” ที่จับคู่ไว้ (ก๊อปกลับให้ลูกค้าเช็กได้ตรงกัน)</div>
         <div id="sellList"></div>
         <datalist id="sellCatalogList"></datalist>
+        <div id="sellTotal" class="sell-total" style="display:none"></div>
 
         <button class="submit-btn" id="sellSaveBtn" onclick="sellSave()">✅ บันทึกเข้าระบบ + ตัดสต็อก</button>
       </div>
@@ -1829,9 +1833,15 @@ function sellAdjust(i, d) { if (!sellItems[i]) return; sellItems[i].qty = Math.m
 function sellRemove(i) { sellItems.splice(i, 1); sellRender(); }
 
 function sellRender() {
+  const isOwner = currentRole === 'owner'; // เจ้าของเห็นราคา / พนักงานไม่เห็น
   const list = document.getElementById('sellList');
   list.innerHTML = sellItems.map((it, i) => {
     const ok = !!it.match;
+    let priceTag = '';
+    if (isOwner) {
+      const lp = it.match ? sellUnitPrice(it.match, it.qty) * it.qty : 0;
+      priceTag = `<span class="sell-price${lp > 0 ? '' : ' muted'}">${lp > 0 ? lp.toLocaleString() + ' ฿' : '—'}</span>`;
+    }
     return `<div class="sell-row">
       <div class="sell-row-top">
         <input class="sell-item-text" value="${(it.text || '').replace(/"/g, '&quot;')}" placeholder="รายการตามที่ลูกค้าพิมพ์" onchange="sellSetText(${i}, this.value)">
@@ -1845,6 +1855,7 @@ function sellRender() {
           <input type="number" min="1" value="${it.qty}" onchange="sellSetQty(${i}, this.value)" title="จำนวนหน่วยสำหรับตัดสต็อก">
           <button onclick="sellAdjust(${i},1)">+</button>
         </div>
+        ${priceTag}
       </div>
     </div>`;
   }).join('');
@@ -1852,6 +1863,17 @@ function sellRender() {
   const unmatched = sellItems.filter(it => (it.text || '').trim() && !it.match).length;
   document.getElementById('sellListTitle').textContent =
     `รายการขาย (${sellItems.length} รายการ · ${totalQty} หน่วย)` + (unmatched ? ` · ⚠️ ยังไม่จับคู่ ${unmatched}` : '');
+  // ยอดรวม — แสดงเฉพาะเจ้าของ
+  const totalEl = document.getElementById('sellTotal');
+  if (totalEl) {
+    if (isOwner && sellItems.length) {
+      const total = sellItems.reduce((s, it) => s + (it.match ? sellUnitPrice(it.match, it.qty) * it.qty : 0), 0);
+      totalEl.textContent = `ยอดรวม: ${total.toLocaleString()} ฿` + (unmatched ? ' (ยังไม่รวมรายการที่จับคู่ไม่ได้)' : '');
+      totalEl.style.display = 'block';
+    } else {
+      totalEl.style.display = 'none';
+    }
+  }
 }
 
 async function sellSave() {
