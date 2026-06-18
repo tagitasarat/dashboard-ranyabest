@@ -1788,12 +1788,12 @@ function sellParse() {
     // บล็อกสุดท้าย = รายการยา
     itemLines = blocks[blocks.length - 1];
     const rest = blocks.slice(0, -1);
-    // แยกบล็อก "ผู้ส่ง" ออก (เคสฝากส่ง — เราส่งให้ "ผู้รับ" แต่ผู้ส่งไว้ขึ้นป้าย)
     const isSender = b => /(^|\s)ผู้ส่ง|^จาก[\s:：]|sender|^from[\s:：]/i.test(b.join(' '));
-    senderBlock = rest.find(isSender) || null;
-    const cand = rest.filter(b => !isSender(b));
-    // เลือกบล็อกผู้รับ: มีคำว่า กรุณาส่ง/ผู้รับ/ส่งให้ ก่อน ไม่งั้นเอาบล็อกที่ใกล้รายการสุด
-    headerLines = cand.find(b => /กรุณาส่ง|ผู้รับ|ส่งให้|ส่งถึง|ส่งคุณ|จัดส่ง/i.test(b.join(' '))) || cand[cand.length - 1] || [];
+    const isRecip  = b => /กรุณาส่ง|ผู้รับ|ส่งให้|ส่งถึง|ส่งคุณ|จัดส่ง/i.test(b.join(' '));
+    // เลือกบล็อกผู้รับ: มีคีย์เวิร์ดก่อน ไม่งั้นเอาบล็อกที่ใกล้รายการสุด
+    headerLines = rest.find(isRecip) || rest[rest.length - 1] || [];
+    // เลือกบล็อกผู้ส่ง: มีคีย์เวิร์ด "ผู้ส่ง" ก่อน ไม่งั้น ถ้ามี ≥2 บล็อก ให้บล็อกแรกที่ไม่ใช่ผู้รับ = ผู้ส่ง
+    senderBlock = rest.find(isSender) || (rest.length >= 2 ? rest.find(b => b !== headerLines) : null) || null;
   } else {
     // บล็อกเดียว ไม่มีบรรทัดว่างคั่น → เดาจากบรรทัดที่ "หน้าตาเหมือนรายการยา"
     const clean = blocks[0];
@@ -1818,10 +1818,28 @@ function sellParse() {
   document.getElementById('sellSenderPhone').value = snd ? snd.phone : '';
 
   // ── รายการ ── (เดาจับคู่ยาในระบบให้ด้วย)
-  sellItems = itemLines.map(text => ({ text, qty: sellGuessQty(text), match: sellMatchName(text) }));
+  // บรรทัดที่เป็น "จำนวนล้วน ๆ" (เช่น "2 กป") ให้รวมเข้ากับรายการบรรทัดบน
+  sellItems = [];
+  for (const raw of itemLines) {
+    if (sellItems.length && sellIsQtyOnly(raw)) {
+      const prev = sellItems[sellItems.length - 1];
+      prev.text = (prev.text + ' ' + raw).trim();
+      const qm = raw.match(/\d+/);
+      if (qm) prev.qty = Math.max(1, parseInt(qm[0]));
+    } else {
+      sellItems.push({ text: raw, qty: sellGuessQty(raw), match: '' });
+    }
+  }
+  sellItems.forEach(it => { it.match = sellMatchName(it.text); });
   document.getElementById('sellResult').style.display = 'block';
   sellRender();
   if (!sellItems.length) showToast('ไม่พบรายการยา ลองกด “+ เพิ่มรายการ” เองได้ครับ');
+}
+
+// บรรทัดที่เป็น "จำนวนล้วน ๆ" เช่น "2 กป", "2 กล่อง", "x3", "10 ก" (ไม่มีชื่อยา)
+function sellIsQtyOnly(line) {
+  const s = (line || '').trim();
+  return /^[xX×]?\s*\d+(\.\d+)?\s*[^\d]{0,8}$/.test(s) && !/[A-Za-z]{3,}/.test(s);
 }
 
 // แยกชื่อ/เบอร์/ที่อยู่ จากบล็อกข้อมูลลูกค้า
