@@ -1839,7 +1839,7 @@ function sellRender() {
     const ok = !!it.match;
     let priceTag = '';
     if (isOwner) {
-      const lp = it.match ? sellUnitPrice(it.match, it.qty) * it.qty : 0;
+      const lp = it.match ? Math.round(sellUnitPrice(it.match, it.qty) * it.qty) : 0;
       priceTag = `<span class="sell-price${lp > 0 ? '' : ' muted'}">${lp > 0 ? lp.toLocaleString() + ' ฿' : '—'}</span>`;
     }
     return `<div class="sell-row">
@@ -1867,7 +1867,7 @@ function sellRender() {
   const totalEl = document.getElementById('sellTotal');
   if (totalEl) {
     if (isOwner && sellItems.length) {
-      const total = sellItems.reduce((s, it) => s + (it.match ? sellUnitPrice(it.match, it.qty) * it.qty : 0), 0);
+      const total = sellItems.reduce((s, it) => s + (it.match ? Math.round(sellUnitPrice(it.match, it.qty) * it.qty) : 0), 0);
       totalEl.textContent = `ยอดรวม: ${total.toLocaleString()} ฿` + (unmatched ? ' (ยังไม่รวมรายการที่จับคู่ไม่ได้)' : '');
       totalEl.style.display = 'block';
     } else {
@@ -1897,9 +1897,11 @@ async function sellSave() {
   const itemsText = items.map((it, idx) => {
     let label;
     if (it.match) {
-      total += sellUnitPrice(it.match, it.qty) * it.qty; priced++;
+      const lp = Math.round(sellUnitPrice(it.match, it.qty) * it.qty);
+      total += lp; priced++;
       const u = sellUnitOf(it.match);
-      label = `${it.match} x${it.qty}${u ? ' ' + u : ''}`;
+      // ใส่ราคาต่อบรรทัด (= xxx ฿) เหมือนออเดอร์จากแคตตาล็อก → เจ้าของเห็น/พนักงานถูกซ่อนอัตโนมัติ
+      label = `${it.match} x${it.qty}${u ? ' ' + u : ''}${lp > 0 ? ` = ${lp.toLocaleString()} ฿` : ''}`;
     } else {
       label = it.text.trim();
     }
