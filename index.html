@@ -247,6 +247,7 @@ header{background:var(--accent);padding:1rem 1.5rem;display:flex;align-items:cen
 .sell-price{font-size:12px;font-weight:600;color:var(--accent);flex-shrink:0;min-width:62px;text-align:right}
 .sell-price.muted{color:var(--muted);font-weight:400}
 .sell-total{text-align:right;font-size:15px;font-weight:700;color:var(--accent);margin:10px 2px 0}
+.order-sender{font-size:13px;color:var(--orange);font-weight:600;margin:2px 0 4px}
 /* SCANNER OVERLAY */
 .qs-scanner{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;display:none;flex-direction:column;align-items:center;justify-content:center;padding:1rem}
 .qs-scanner.open{display:flex}
@@ -401,6 +402,8 @@ Micardis 40mg 1 กล่อง"></textarea>
           <div class="form-field" style="grid-column:1/-1"><label>ชื่อลูกค้า</label><input id="sellCusName" placeholder="ชื่อ / ชื่อร้าน"></div>
           <div class="form-field" style="grid-column:1/-1"><label>เบอร์โทร</label><input id="sellCusPhone" inputmode="tel" placeholder="เบอร์ติดต่อ"></div>
           <div class="form-field" style="grid-column:1/-1"><label>ที่อยู่จัดส่ง</label><textarea id="sellCusAddress" class="sell-addr" placeholder="ที่อยู่สำหรับจัดส่ง"></textarea></div>
+          <div class="form-field" style="grid-column:1/-1"><label>ผู้ส่งบนป้าย (เว้นว่าง = พระจันทร์เภสัช)</label><input id="sellSenderName" placeholder="ชื่อผู้ส่ง — เคสฝากส่งระบบจะเติมให้อัตโนมัติ"></div>
+          <div class="form-field" style="grid-column:1/-1"><label>เบอร์ผู้ส่ง</label><input id="sellSenderPhone" inputmode="tel" placeholder="เบอร์ผู้ส่ง (ถ้ามี)"></div>
         </div>
 
         <div class="qs-list-head" style="margin-top:6px">
@@ -815,10 +818,13 @@ function renderOrders() {
   }
 
   document.getElementById('ordersContainer').innerHTML = filtered.map(o => {
-    // ซ่อนราคาในรายการยาถ้าเป็น staff
-    const itemsDisplay = currentRole === 'staff'
-      ? o.items.replace(/ = [\d,]+ ฿/g, '')
-      : o.items;
+    // ซ่อนราคาในรายการยาถ้าเป็น staff + ตัดแท็กผู้ส่งออกจากการแสดงผล
+    let itemsDisplay = stripSenderTag(o.items);
+    if (currentRole === 'staff') itemsDisplay = itemsDisplay.replace(/ = [\d,]+ ฿/g, '');
+    const snd = orderSender(o.items);
+    const senderDisplay = snd
+      ? `<div class="order-sender">📦 ฝากส่งในนาม: ${snd.name}${snd.phone ? ' · ' + snd.phone : ''}</div>`
+      : '';
     const totalDisplay = currentRole === 'owner'
       ? `<div class="order-total">💰 ${o.total}</div>`
       : '';
@@ -832,6 +838,7 @@ function renderOrders() {
       <div class="order-customer">👤 ${o.name}</div>
       <div class="order-phone">📞 ${formatPhone(o.phone)}</div>
       <div class="order-address">📍 ${o.address}</div>
+      ${senderDisplay}
       <div class="order-items">${itemsDisplay}</div>
       <div class="order-footer">
         ${totalDisplay}
@@ -857,13 +864,23 @@ function stripPrices(itemsStr) {
   return itemsStr.replace(/\s*=\s*[\d,]+\s*฿/g, '').replace(/\s*=\s*[\d,]+\s*บาท/gi, '');
 }
 
+// ── ผู้ส่ง (เคสฝากส่ง) — ฝังไว้ท้ายข้อความรายการเป็นแท็ก ⟪SND:ชื่อ|เบอร์⟫ ──
+function orderSender(itemsStr) {
+  const m = (itemsStr || '').match(/⟪SND:([^|⟫]*)\|?([^⟫]*)⟫/);
+  return m ? { name: (m[1] || '').trim(), phone: (m[2] || '').trim() } : null;
+}
+function stripSenderTag(itemsStr) {
+  return (itemsStr || '').replace(/\s*⟪SND:[^⟫]*⟫/g, '');
+}
+
 function copyOrderText(row, noPrice = false) {
   const o = allOrders.find(x => x.row === row);
   if (!o) return;
 
   const hidePrice = noPrice || currentRole === 'staff';
 
-  const itemsText = hidePrice ? stripPrices(o.items) : o.items;
+  const cleanItems = stripSenderTag(o.items);
+  const itemsText = hidePrice ? stripPrices(cleanItems) : cleanItems;
   const totalLine = !hidePrice ? `\n─────────────────\nยอดรวม: ${o.total}` : '';
 
   const text =
@@ -1032,7 +1049,7 @@ function openEditOrder(row) {
   const order = allOrders.find(o => o.row === row);
   if (!order) return;
   editingRow = row;
-  editItems = parseItems(order.items);
+  editItems = parseItems(stripSenderTag(order.items)); // ไม่เอาแท็กผู้ส่งมาเป็นรายการ
   renderEditItems();
   document.getElementById('editOverlay').classList.add('open');
 }
@@ -1052,10 +1069,13 @@ async function saveEditOrder() {
   const newItemsText = editItems.map((item, i) =>
     `${i+1}. ${item.name} x${item.qty} ${order.items.match(/x\d+\s+(\S+)/)?.[1] || 'รายการ'} = ${(item.price * item.qty).toLocaleString()} ฿`
   ).join('\n');
+  // คงแท็กผู้ส่ง (เคสฝากส่ง) ไว้ ถ้าออเดอร์เดิมมี
+  const snd = orderSender(order.items);
+  const newItemsFull = snd ? `${newItemsText}\n⟪SND:${snd.name}|${snd.phone}⟫` : newItemsText;
   const newTotal = calcEditTotal().toLocaleString() + ' ฿';
 
   try {
-    await fetch(`${ADMIN_URL}?action=updateItems&row=${editingRow}&items=${encodeURIComponent(newItemsText)}&total=${encodeURIComponent(newTotal)}`);
+    await fetch(`${ADMIN_URL}?action=updateItems&row=${editingRow}&items=${encodeURIComponent(newItemsFull)}&total=${encodeURIComponent(newTotal)}`);
     // อัปเดต local
     order.items = newItemsText;
     order.total = newTotal;
@@ -1763,13 +1783,14 @@ function sellParse() {
   const blocks = norm.split(/\n\s*\n/).map(b => b.split('\n').map(l => l.trim()).filter(Boolean)).filter(b => b.length);
   if (!blocks.length) { showToast('ไม่พบข้อมูล'); return; }
 
-  let headerLines = [], itemLines = [];
+  let headerLines = [], itemLines = [], senderBlock = null;
   if (blocks.length >= 2) {
     // บล็อกสุดท้าย = รายการยา
     itemLines = blocks[blocks.length - 1];
     const rest = blocks.slice(0, -1);
-    // ตัดบล็อก "ผู้ส่ง" ออก (เราส่งให้ "ผู้รับ")
+    // แยกบล็อก "ผู้ส่ง" ออก (เคสฝากส่ง — เราส่งให้ "ผู้รับ" แต่ผู้ส่งไว้ขึ้นป้าย)
     const isSender = b => /(^|\s)ผู้ส่ง|^จาก[\s:：]|sender|^from[\s:：]/i.test(b.join(' '));
+    senderBlock = rest.find(isSender) || null;
     const cand = rest.filter(b => !isSender(b));
     // เลือกบล็อกผู้รับ: มีคำว่า กรุณาส่ง/ผู้รับ/ส่งให้ ก่อน ไม่งั้นเอาบล็อกที่ใกล้รายการสุด
     headerLines = cand.find(b => /กรุณาส่ง|ผู้รับ|ส่งให้|ส่งถึง|ส่งคุณ|จัดส่ง/i.test(b.join(' '))) || cand[cand.length - 1] || [];
@@ -1790,6 +1811,11 @@ function sellParse() {
   document.getElementById('sellCusName').value = cust.name;
   document.getElementById('sellCusPhone').value = cust.phone;
   document.getElementById('sellCusAddress').value = cust.address;
+
+  // ── ผู้ส่ง (เคสฝากส่ง) ── เติมให้อัตโนมัติ ถ้าไม่มีให้ว่างไว้ (= ใช้พระจันทร์เภสัช)
+  const snd = senderBlock ? sellParseSender(senderBlock) : null;
+  document.getElementById('sellSenderName').value = snd ? snd.name : '';
+  document.getElementById('sellSenderPhone').value = snd ? snd.phone : '';
 
   // ── รายการ ── (เดาจับคู่ยาในระบบให้ด้วย)
   sellItems = itemLines.map(text => ({ text, qty: sellGuessQty(text), match: sellMatchName(text) }));
@@ -1815,6 +1841,19 @@ function sellParseCustomer(lines) {
   // ถ้าบรรทัดแรกเป็นแค่ป้ายกำกับจนชื่อว่าง → เลื่อนบรรทัดถัดไปมาเป็นชื่อ
   if (!name && addr.length) name = addr.shift();
   return { name, phone, address: addr.join('\n') };
+}
+
+// แยกชื่อ/เบอร์ ผู้ส่ง จากบล็อก "ผู้ส่ง ..." (เคสฝากส่ง)
+function sellParseSender(lines) {
+  if (!lines || !lines.length) return null;
+  let phone = '', parts = [];
+  lines.forEach(l => {
+    const pm = l.match(/(0\d[\d\-\s]{7,12})/); if (pm && !phone) phone = pm[1].replace(/[\s\-]/g, '');
+    let line = l.replace(/(โทร\.?|tel\.?|เบอร์)?\s*0\d[\d\-\s]{7,12}/i, '')
+                .replace(/^(ผู้ส่ง|จาก|sender|from)\s*[:：]?\s*/i, '').trim();
+    if (line) parts.push(line);
+  });
+  return { name: parts.join(' ').trim(), phone };
 }
 
 // เดาจำนวนหน่วยจากบรรทัด (best-effort) — ค่าเริ่มต้น 1 แก้ได้
@@ -1918,13 +1957,17 @@ async function sellSave() {
     }
     return `${idx + 1}. ${label}`;
   }).join('\n');
+  // เคสฝากส่ง: ฝากชื่อผู้ส่งไว้กับออเดอร์ ไว้ขึ้นป้ายส่ง (ซ่อนจากการแสดงผลปกติ)
+  const senderName = document.getElementById('sellSenderName').value.trim();
+  const senderPhone = document.getElementById('sellSenderPhone').value.trim();
+  const itemsTextFull = senderName ? `${itemsText}\n⟪SND:${senderName}|${senderPhone}⟫` : itemsText;
   const totalStr = (priced === items.length && total > 0) ? total.toLocaleString() + ' ฿' : '';
 
   // 1) บันทึกออเดอร์เข้าระบบ
   try {
     await fetch(SELL_ORDER_URL, {
       method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, phone, address, items: itemsText, total: totalStr })
+      body: JSON.stringify({ name, phone, address, items: itemsTextFull, total: totalStr })
     });
   } catch (e) {}
 
@@ -1945,6 +1988,8 @@ async function sellSave() {
   document.getElementById('sellCusName').value = '';
   document.getElementById('sellCusPhone').value = '';
   document.getElementById('sellCusAddress').value = '';
+  document.getElementById('sellSenderName').value = '';
+  document.getElementById('sellSenderPhone').value = '';
   document.getElementById('sellResult').style.display = 'none';
   sellRender();
   stockData = []; // ให้โหลดสต็อกใหม่เมื่อเข้าไปดู
@@ -1960,8 +2005,11 @@ let labelRow = null;
 
 function openLabel(row) {
   labelRow = row;
-  document.getElementById('lblSenderName').value = LABEL_DEFAULT_SENDER.name;
-  document.getElementById('lblSenderPhone').value = LABEL_DEFAULT_SENDER.phone;
+  // เคสฝากส่ง: ถ้าออเดอร์มีผู้ส่งฝังไว้ ใช้ผู้ส่งนั้นแทนค่าเริ่มต้น
+  const o = allOrders.find(x => x.row === row);
+  const snd = o ? orderSender(o.items) : null;
+  document.getElementById('lblSenderName').value = snd && snd.name ? snd.name : LABEL_DEFAULT_SENDER.name;
+  document.getElementById('lblSenderPhone').value = snd && snd.phone ? snd.phone : LABEL_DEFAULT_SENDER.phone;
   document.getElementById('labelOverlay').classList.add('open');
   renderLabel();
 }
