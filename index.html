@@ -404,7 +404,7 @@ Micardis 40mg 1 กล่อง"></textarea>
           <span id="sellListTitle">รายการขาย</span>
           <button class="qs-add-btn" onclick="sellAddRow()">+ เพิ่มรายการ</button>
         </div>
-        <div class="qs-hint" style="margin:2px 2px 8px">🔗 ระบบเดา “ยาในระบบ” ให้แต่ละบรรทัดอัตโนมัติ (ไว้ตัดสต็อก/คิดยอด) — ถ้าจับคู่ผิดหรือขึ้น ⚠️ ให้แตะเลือกใหม่ได้ ส่วนข้อความออเดอร์ยังเก็บตามที่ลูกค้าพิมพ์</div>
+        <div class="qs-hint" style="margin:2px 2px 8px">🔗 ระบบเดา “ยาในระบบ” ให้แต่ละบรรทัดอัตโนมัติ — ถ้าจับคู่ผิดหรือขึ้น ⚠️ ให้แตะเลือกใหม่ได้ ออเดอร์ที่บันทึกจะใช้ “ชื่อยาในระบบ” ที่จับคู่ไว้ (ก๊อปกลับให้ลูกค้าเช็กได้ตรงกัน)</div>
         <div id="sellList"></div>
         <datalist id="sellCatalogList"></datalist>
 
@@ -1678,6 +1678,14 @@ function sellLoadPrices() {
 
 // ── คิดราคาแบบขั้นบันได (เหมือนหน้าแคตตาล็อก) ──
 function sellMinQty(unit) { const m = (unit || '').toString().match(/^(\d+)/); return m ? parseInt(m[1]) : 1; }
+// หน่วยของยาในระบบ (เอาแถวหน่วยฐาน minQty น้อยสุด)
+function sellUnitOf(name) {
+  const rows = sellPriceData.filter(d => d.name.trim() === (name || '').trim());
+  if (!rows.length) return '';
+  let best = rows[0], bestMin = sellMinQty(rows[0].unit);
+  for (const r of rows) { const mq = sellMinQty(r.unit); if (mq < bestMin) { bestMin = mq; best = r; } }
+  return (best.unit || '').replace(/^\d+\s*/, ''); // ตัดเลขนำหน้า เช่น "10 กล่อง" → "กล่อง"
+}
 function sellUnitPrice(name, qty) {
   const base = (name || '').trim();
   const rows = sellPriceData.filter(d => d.name.trim() === base);
@@ -1860,12 +1868,20 @@ async function sellSave() {
   const btn = document.getElementById('sellSaveBtn');
   btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
 
-  // ข้อความรายการสำหรับบันทึกออเดอร์ — เก็บตามที่ลูกค้าสั่งไว้ (ตรงกับที่ใช้แพ็ก/ปริ้น)
-  // คิดยอดเงียบ ๆ จากยาในระบบที่จับคู่ไว้ — ไม่แสดงราคาให้พนักงานเห็น
+  // ข้อความรายการสำหรับบันทึกออเดอร์ — ใช้ "ชื่อยาในระบบ" ที่จับคู่ไว้
+  // (ก๊อปกลับให้ลูกค้าเช็กจะได้ตรงกัน) ถ้าจับคู่ไม่ได้ค่อย fallback เป็นข้อความลูกค้า
+  // คิดยอดเงียบ ๆ จากยาในระบบ — ไม่แสดงราคาให้พนักงานเห็น
   let total = 0, priced = 0;
   const itemsText = items.map((it, idx) => {
-    if (it.match) { total += sellUnitPrice(it.match, it.qty) * it.qty; priced++; }
-    return `${idx + 1}. ${it.text.trim()}`;
+    let label;
+    if (it.match) {
+      total += sellUnitPrice(it.match, it.qty) * it.qty; priced++;
+      const u = sellUnitOf(it.match);
+      label = `${it.match} x${it.qty}${u ? ' ' + u : ''}`;
+    } else {
+      label = it.text.trim();
+    }
+    return `${idx + 1}. ${label}`;
   }).join('\n');
   const totalStr = (priced === items.length && total > 0) ? total.toLocaleString() + ' ฿' : '';
 
