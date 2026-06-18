@@ -1790,10 +1790,19 @@ function sellParse() {
     const rest = blocks.slice(0, -1);
     const isSender = b => /(^|\s)ผู้ส่ง|^จาก[\s:：]|sender|^from[\s:：]/i.test(b.join(' '));
     const isRecip  = b => /กรุณาส่ง|ผู้รับ|ส่งให้|ส่งถึง|ส่งคุณ|จัดส่ง/i.test(b.join(' '));
-    // เลือกบล็อกผู้รับ: มีคีย์เวิร์ดก่อน ไม่งั้นเอาบล็อกที่ใกล้รายการสุด
-    headerLines = rest.find(isRecip) || rest[rest.length - 1] || [];
-    // เลือกบล็อกผู้ส่ง: มีคีย์เวิร์ด "ผู้ส่ง" ก่อน ไม่งั้น ถ้ามี ≥2 บล็อก ให้บล็อกแรกที่ไม่ใช่ผู้รับ = ผู้ส่ง
-    senderBlock = rest.find(isSender) || (rest.length >= 2 ? rest.find(b => b !== headerLines) : null) || null;
+    // ให้คะแนน "ความเป็นบล็อกข้อมูลจริง" (มีที่อยู่/เบอร์) เพื่อข้ามบล็อกโน้ตสั้น ๆ เช่น "สั่งของค่ะ"
+    const infoScore = b => {
+      const s = b.join(' '); let n = 0;
+      if (/(หมู่|ม\.\s?\d|ต\.|อ\.|จ\.|ถนน|ซอย|ตำบล|อำเภอ|จังหวัด|เลขที่|\d{5}(\D|$))/i.test(s)) n += 2;
+      if (/0\d[\d\-\s]{7,12}/.test(s)) n += 1;
+      if (b.length >= 2) n += 1;
+      return n;
+    };
+    const infoBlocks = rest.filter(b => infoScore(b) > 0);
+    // ผู้รับ: คีย์เวิร์ดก่อน → บล็อกข้อมูลจริงที่ใกล้รายการสุด → บล็อกสุดท้าย
+    headerLines = rest.find(isRecip) || infoBlocks[infoBlocks.length - 1] || rest[rest.length - 1] || [];
+    // ผู้ส่ง: คีย์เวิร์ด "ผู้ส่ง" ก่อน → ถ้ามีบล็อกข้อมูลจริง ≥2 เอาบล็อกแรกที่ไม่ใช่ผู้รับ
+    senderBlock = rest.find(isSender) || (infoBlocks.length >= 2 ? infoBlocks.find(b => b !== headerLines) : null) || null;
   } else {
     // บล็อกเดียว ไม่มีบรรทัดว่างคั่น → เดาจากบรรทัดที่ "หน้าตาเหมือนรายการยา"
     const clean = blocks[0];
@@ -1820,7 +1829,10 @@ function sellParse() {
   // ── รายการ ── (เดาจับคู่ยาในระบบให้ด้วย)
   // บรรทัดที่เป็น "จำนวนล้วน ๆ" (เช่น "2 กป") ให้รวมเข้ากับรายการบรรทัดบน
   sellItems = [];
-  for (const raw of itemLines) {
+  for (const line of itemLines) {
+    // ตัดเลขลำดับนำหน้า เช่น "1." "2)" ออก
+    const raw = line.replace(/^\s*\d+\s*[\.\)]\s*/, '').trim();
+    if (!raw) continue;
     if (sellItems.length && sellIsQtyOnly(raw)) {
       const prev = sellItems[sellItems.length - 1];
       prev.text = (prev.text + ' ' + raw).trim();
