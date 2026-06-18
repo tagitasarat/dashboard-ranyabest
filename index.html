@@ -1888,11 +1888,19 @@ function sellParseSender(lines) {
 
 // เดาจำนวนหน่วยจากบรรทัด (best-effort) — ค่าเริ่มต้น 1 แก้ได้
 function sellGuessQty(text) {
-  // จับเลขที่ติดกับคำว่าจำนวน เช่น "1 กล่อง", "2กล่อง", "x3"
-  let m = text.match(/(\d+)\s*(?:กล่อง|ขวด|หลอด|แผง|ซอง|ชิ้น|อัน|ตลับ)/);
+  const s = (text || '').toString();
+  // 1) เลขที่ติดกับหน่วยนับ เช่น "2 กล่อง", "5 หลอด", "2 กป" (เอาตัวท้ายสุด)
+  const um = [...s.matchAll(/(\d+)\s*(?:กล่อง|ขวด|หลอด|แผง|ซอง|ชิ้น|อัน|ตลับ|แคปซูล|กป)/g)];
+  if (um.length) return Math.max(1, parseInt(um[um.length - 1][1]));
+  // 2) "xN" หรือ "×N" ที่เป็นคำโดด (ไม่ใช่ขนาดแพ็กเช่น 10x10)
+  let m = s.match(/(?:^|\s)[x×]\s*(\d+)/i);
   if (m) return Math.max(1, parseInt(m[1]));
-  m = text.match(/[x×]\s*(\d+)/i);
+  // 3) เลขหลังเครื่องหมาย "=" เช่น "Duocetz = 2"
+  m = s.match(/=\s*(\d+)\b/);
   if (m) return Math.max(1, parseInt(m[1]));
+  // 4) เลขท้ายบรรทัด (มีช่องว่างนำหน้า) = จำนวน เช่น "Rhinocort 12" ยกเว้นเป็นความแรงยา
+  m = s.match(/(?:^|\s)(\d+)\s*$/);
+  if (m && !/\d+\s*(?:mg|mcg|g|gm|gram|ml|cc|%|tab|tabs|tablet|tablets)\s*$/i.test(s)) return Math.max(1, parseInt(m[1]));
   return 1;
 }
 
