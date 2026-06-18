@@ -1759,8 +1759,17 @@ function sellTokMatch(a, b) {
   if (a.length >= 8 && b.length >= 8 && sellEdit(a, b) <= 2) return true;
   return false;
 }
+// ตัด "จำนวน" ออกจากบรรทัดก่อนจับคู่ (เก็บเฉพาะเลขความแรง เช่น 30) กันจำนวนมารบกวนการเลือกความแรง
+function sellMatchText(line) {
+  return (line || '').toString()
+    .replace(/=\s*\d+.*$/, ' ')                                   // ทุกอย่างหลัง "=" (ราคา/จำนวน)
+    .replace(/(?:^|\s)[x×]\s*\d+/ig, ' ')                          // xN
+    .replace(/\d+\s*(?:กล่อง|ขวด|หลอด|แผง|ซอง|ชิ้น|อัน|ตลับ|แคปซูล|กป|ก(?=\s|$))/g, ' ') // เลข+หน่วยนับ
+    .replace(/(?:^|\s)\d+\s*$/, ' ')                               // เลขจำนวนท้ายบรรทัด
+    .trim();
+}
 function sellMatchName(line) {
-  const lt = sellTokens(line);
+  const lt = sellTokens(sellMatchText(line));
   if (!lt.length || !sellPriceData.length) return '';
   let best = '', bestScore = 0;
   for (const d of sellPriceData) {
@@ -1893,8 +1902,8 @@ function sellParseSender(lines) {
 // เดาจำนวนหน่วยจากบรรทัด (best-effort) — ค่าเริ่มต้น 1 แก้ได้
 function sellGuessQty(text) {
   const s = (text || '').toString();
-  // 1) เลขที่ติดกับหน่วยนับ เช่น "2 กล่อง", "5 หลอด", "2 กป" (เอาตัวท้ายสุด)
-  const um = [...s.matchAll(/(\d+)\s*(?:กล่อง|ขวด|หลอด|แผง|ซอง|ชิ้น|อัน|ตลับ|แคปซูล|กป)/g)];
+  // 1) เลขที่ติดกับหน่วยนับ เช่น "2 กล่อง", "5 หลอด", "2 กป", "2 ก" (เอาตัวท้ายสุด) — "ก" เดี่ยว = กล่อง
+  const um = [...s.matchAll(/(\d+)\s*(?:กล่อง|ขวด|หลอด|แผง|ซอง|ชิ้น|อัน|ตลับ|แคปซูล|กป|ก(?=\s|$))/g)];
   if (um.length) return Math.max(1, parseInt(um[um.length - 1][1]));
   // 2) "xN" หรือ "×N" ที่เป็นคำโดด (ไม่ใช่ขนาดแพ็กเช่น 10x10)
   let m = s.match(/(?:^|\s)[x×]\s*(\d+)/i);
@@ -1902,9 +1911,10 @@ function sellGuessQty(text) {
   // 3) เลขหลังเครื่องหมาย "=" เช่น "Duocetz = 2"
   m = s.match(/=\s*(\d+)\b/);
   if (m) return Math.max(1, parseInt(m[1]));
-  // 4) เลขท้ายบรรทัด (มีช่องว่างนำหน้า) = จำนวน เช่น "Rhinocort 12" ยกเว้นเป็นความแรงยา
+  // 4) เลขท้ายบรรทัด (มีช่องว่างนำหน้า) = จำนวน เช่น "Rhinocort 12"
+  //    เฉพาะค่าน้อยกว่า 100 (กันสับสนกับราคา เช่น 540) และไม่ใช่ความแรงยา
   m = s.match(/(?:^|\s)(\d+)\s*$/);
-  if (m && !/\d+\s*(?:mg|mcg|g|gm|gram|ml|cc|%|tab|tabs|tablet|tablets)\s*$/i.test(s)) return Math.max(1, parseInt(m[1]));
+  if (m && parseInt(m[1]) < 100 && !/\d+\s*(?:mg|mcg|g|gm|gram|ml|cc|%|tab|tabs|tablet|tablets)\s*$/i.test(s)) return Math.max(1, parseInt(m[1]));
   return 1;
 }
 
