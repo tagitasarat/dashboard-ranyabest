@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<!-- saved from url=(0045)file:///C:/Users/acer/Downloads/admin_12.html -->
+<!-- saved from url=(0045)file:///C:/Users/acer/Downloads/index_63.html -->
 <html lang="th"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ร้านยา Best — Admin</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+<link href="./index_files/css2" rel="stylesheet">
 <style>
 :root {
   --bg:#F7F5F0;--surface:#fff;--border:#E2DDD6;--text:#1A1714;--muted:#7A746C;
@@ -652,7 +652,6 @@ async function loadOrders() {
   try {
     const res = await fetch(`${ADMIN_URL}?action=getOrders`);
     const data = await res.json();
-    // กรองแถวว่างออก: ถ้าไม่มีทั้งชื่อ เบอร์ ที่อยู่ และรายการยา ถือว่าเป็นแถวเปล่า ไม่ต้องแสดง
     allOrders = data.filter(o =>
       [o.name, o.phone, o.address, o.items].some(v => v != null && v.toString().trim() !== '')
     ).reverse();
@@ -1240,26 +1239,58 @@ async function updateReqStatus(row, status) {
 
 // ── LOAD INVENTORY ON TAB SWITCH ──
 async function updateStatus(row, status) {
+  const target = allOrders.find(x => x.row === row);
+  if (!target) { showToast('❌ ไม่พบออเดอร์ครับ'); return; }
+  const badge = document.getElementById(`badge-${row}`);
+  if (badge) badge.textContent = 'กำลังบันทึก...';
   try {
-    await fetch(`${ADMIN_URL}?action=updateStatus&row=${row}&status=${encodeURIComponent(status)}`);
-    const o = allOrders.find(x => x.row === row);
-    if (o) o.status = status;
-    updateStats();
-    const badge = document.getElementById(`badge-${row}`);
-    if (badge) { badge.className = `status-badge ${getStatusClass(status)}`; badge.textContent = status; }
-    showToast(`✅ อัปเดตเป็น "${status}" แล้วครับ`);
-  } catch(e) { showToast('❌ อัปเดตไม่ได้ครับ'); }
+    // หาแถวล่าสุดจริงก่อนเขียน กันแถวเลื่อน (จับจากชื่อ+เบอร์+วันที่ที่ไม่เปลี่ยน)
+    const res = await fetch(`${ADMIN_URL}?action=getOrders`);
+    const fresh = await res.json();
+    const match = fresh.find(o =>
+      o.name === target.name &&
+      String(o.phone) === String(target.phone) &&
+      o.date === target.date &&
+      o.status !== status // เผื่อมีออเดอร์ซ้ำ ให้เลือกตัวที่ยังไม่ใช่สถานะนี้
+    ) || fresh.find(o =>
+      o.name === target.name && String(o.phone) === String(target.phone) && o.date === target.date
+    );
+    const realRow = match ? match.row : row;
+    // เขียนสถานะลงแถวจริง
+    await fetch(`${ADMIN_URL}?action=updateStatus&row=${realRow}&status=${encodeURIComponent(status)}`);
+    // รีโหลดจากชีตเพื่อยืนยันว่าเซฟจริง (ไม่อัปเดตหน้าจอแบบหลอกๆ อีก)
+    await loadOrders();
+    const saved = allOrders.find(o =>
+      o.name === target.name && String(o.phone) === String(target.phone) && o.date === target.date
+    );
+    if (saved && saved.status === status) {
+      showToast(`✅ อัปเดตเป็น "${status}" แล้วครับ`);
+    } else {
+      showToast('⚠️ บันทึกไม่สำเร็จ ลองใหม่อีกครั้งครับ');
+    }
+  } catch(e) {
+    showToast('❌ อัปเดตไม่ได้ครับ');
+    loadOrders();
+  }
 }
 
 // ── DELETE ──
 async function deleteOrder(row) {
   if (!confirm('ยืนยันลบออเดอร์นี้?')) return;
+  const target = allOrders.find(x => x.row === row);
+  if (!target) { showToast('❌ ไม่พบออเดอร์ครับ'); return; }
   try {
-    await fetch(`${ADMIN_URL}?action=deleteOrder&row=${row}`);
-    allOrders = allOrders.filter(o => o.row !== row);
-    updateStats(); renderOrders();
+    // หาแถวล่าสุดจริงก่อนลบ กันลบผิดแถว
+    const res = await fetch(`${ADMIN_URL}?action=getOrders`);
+    const fresh = await res.json();
+    const match = fresh.find(o =>
+      o.name === target.name && String(o.phone) === String(target.phone) && o.date === target.date
+    );
+    const realRow = match ? match.row : row;
+    await fetch(`${ADMIN_URL}?action=deleteOrder&row=${realRow}`);
+    await loadOrders(); // รีโหลดจากชีต กันเลขแถวค้าง
     showToast('🗑 ลบออเดอร์แล้วครับ');
-  } catch(e) { showToast('❌ ลบไม่ได้ครับ'); }
+  } catch(e) { showToast('❌ ลบไม่ได้ครับ'); loadOrders(); }
 }
 
 // ── STATS ──
