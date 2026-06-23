@@ -1247,20 +1247,22 @@ async function updateStatus(row, status) {
     // หาแถวล่าสุดจริงก่อนเขียน กันแถวเลื่อน (จับจากชื่อ+เบอร์+วันที่ที่ไม่เปลี่ยน)
     const res = await fetch(`${ADMIN_URL}?action=getOrders`);
     const fresh = await res.json();
-    const match = fresh.find(o =>
+    // จับคู่เฉพาะออเดอร์ของลูกค้า+วันที่เดียวกัน แล้วยึด "แถวที่กดจริง" เป็นหลัก
+    // (กันบันทึกผิดรายการ เมื่อลูกค้าคนเดียวมีหลายออเดอร์) ถ้าแถวเลื่อนค่อย fallback
+    const candidates = fresh.filter(o =>
       o.name === target.name &&
       String(o.phone) === String(target.phone) &&
-      o.date === target.date &&
-      o.status !== status // เผื่อมีออเดอร์ซ้ำ ให้เลือกตัวที่ยังไม่ใช่สถานะนี้
-    ) || fresh.find(o =>
-      o.name === target.name && String(o.phone) === String(target.phone) && o.date === target.date
+      o.date === target.date
     );
+    const match = candidates.find(o => o.row === row)
+      || candidates.find(o => o.status !== status)
+      || candidates[0];
     const realRow = match ? match.row : row;
     // เขียนสถานะลงแถวจริง
     await fetch(`${ADMIN_URL}?action=updateStatus&row=${realRow}&status=${encodeURIComponent(status)}`);
     // รีโหลดจากชีตเพื่อยืนยันว่าเซฟจริง (ไม่อัปเดตหน้าจอแบบหลอกๆ อีก)
     await loadOrders();
-    const saved = allOrders.find(o =>
+    const saved = allOrders.find(o => o.row === realRow) || allOrders.find(o =>
       o.name === target.name && String(o.phone) === String(target.phone) && o.date === target.date
     );
     if (saved && saved.status === status) {
