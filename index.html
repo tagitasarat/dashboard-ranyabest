@@ -1241,38 +1241,22 @@ async function updateReqStatus(row, status) {
 async function updateStatus(row, status) {
   const target = allOrders.find(x => x.row === row);
   if (!target) { showToast('❌ ไม่พบออเดอร์ครับ'); return; }
-  const badge = document.getElementById(`badge-${row}`);
-  if (badge) badge.textContent = 'กำลังบันทึก...';
+  const prevStatus = target.status;
+  if (prevStatus === status) return;
+
+  // อัปเดตหน้าจอทันที (optimistic) — renderOrders ทำงานในเครื่อง ไม่มี network
+  target.status = status;
+  renderOrders();
+
   try {
-    // หาแถวล่าสุดจริงก่อนเขียน กันแถวเลื่อน (จับจากชื่อ+เบอร์+วันที่ที่ไม่เปลี่ยน)
-    const res = await fetch(`${ADMIN_URL}?action=getOrders`);
-    const fresh = await res.json();
-    // จับคู่เฉพาะออเดอร์ของลูกค้า+วันที่เดียวกัน แล้วยึด "แถวที่กดจริง" เป็นหลัก
-    // (กันบันทึกผิดรายการ เมื่อลูกค้าคนเดียวมีหลายออเดอร์) ถ้าแถวเลื่อนค่อย fallback
-    const candidates = fresh.filter(o =>
-      o.name === target.name &&
-      String(o.phone) === String(target.phone) &&
-      o.date === target.date
-    );
-    const match = candidates.find(o => o.row === row)
-      || candidates.find(o => o.status !== status)
-      || candidates[0];
-    const realRow = match ? match.row : row;
-    // เขียนสถานะลงแถวจริง
-    await fetch(`${ADMIN_URL}?action=updateStatus&row=${realRow}&status=${encodeURIComponent(status)}`);
-    // รีโหลดจากชีตเพื่อยืนยันว่าเซฟจริง (ไม่อัปเดตหน้าจอแบบหลอกๆ อีก)
-    await loadOrders();
-    const saved = allOrders.find(o => o.row === realRow) || allOrders.find(o =>
-      o.name === target.name && String(o.phone) === String(target.phone) && o.date === target.date
-    );
-    if (saved && saved.status === status) {
-      showToast(`✅ อัปเดตเป็น "${status}" แล้วครับ`);
-    } else {
-      showToast('⚠️ บันทึกไม่สำเร็จ ลองใหม่อีกครั้งครับ');
-    }
+    // เขียนสถานะลงแถวที่กดโดยตรง (row จากการ์ดเป็นแถวจริงจากชีตอยู่แล้ว) — ยิงรอบเดียว
+    await fetch(`${ADMIN_URL}?action=updateStatus&row=${row}&status=${encodeURIComponent(status)}`);
+    showToast(`✅ อัปเดตเป็น "${status}" แล้วครับ`);
   } catch(e) {
-    showToast('❌ อัปเดตไม่ได้ครับ');
-    loadOrders();
+    // บันทึกพลาด → ย้อนหน้าจอกลับสถานะเดิม
+    target.status = prevStatus;
+    renderOrders();
+    showToast('❌ อัปเดตไม่ได้ครับ ลองใหม่อีกครั้ง');
   }
 }
 
