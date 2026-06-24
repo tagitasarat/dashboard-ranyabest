@@ -227,6 +227,27 @@ header{background:var(--accent);padding:1rem 1.5rem;display:flex;align-items:cen
 .qs-qty input{width:48px;height:30px;text-align:center;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--text);outline:none}
 .qs-exp{width:96px;height:30px;padding:0 8px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:12px;background:var(--surface);color:var(--text);outline:none;flex-shrink:0}
 .qs-del{background:none;border:none;color:var(--red);font-size:16px;cursor:pointer;flex-shrink:0}
+.sell-paste{width:100%;min-height:160px;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:inherit;font-size:14px;line-height:1.6;background:var(--surface);color:var(--text);outline:none;resize:vertical;margin-bottom:8px}
+.sell-paste:focus{border-color:var(--accent)}
+.sell-addr{width:100%;min-height:60px;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:var(--surface);color:var(--text);outline:none;resize:vertical}
+.sell-addr:focus{border-color:var(--accent)}
+.sell-row{padding:10px 0;border-bottom:1px solid var(--row-border,#F0EDE8)}
+.sell-row:last-of-type{border-bottom:none}
+.sell-row-top{display:flex;align-items:center;gap:8px}
+.sell-row-bot{display:flex;align-items:center;gap:8px;margin-top:6px}
+.sell-item-text{flex:1;min-width:0;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:var(--surface);color:var(--text);outline:none}
+.sell-item-text:focus{border-color:var(--accent)}
+.sell-match{flex:1;min-width:0;padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:12px;background:var(--surface);color:var(--text);outline:none}
+.sell-match:focus{border-color:var(--accent)}
+.sell-match.ok{border-color:var(--accent)}
+.sell-match.warn{border-color:var(--orange);background:rgba(230,81,0,.06)}
+.sell-tag{font-size:11px;flex-shrink:0;white-space:nowrap}
+.sell-tag.ok{color:var(--accent)}
+.sell-tag.warn{color:var(--orange)}
+.sell-price{font-size:12px;font-weight:600;color:var(--accent);flex-shrink:0;min-width:62px;text-align:right}
+.sell-price.muted{color:var(--muted);font-weight:400}
+.sell-total{text-align:right;font-size:15px;font-weight:700;color:var(--accent);margin:10px 2px 0}
+.order-sender{font-size:13px;color:var(--orange);font-weight:600;margin:2px 0 4px}
 /* SCANNER OVERLAY */
 .qs-scanner{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;display:none;flex-direction:column;align-items:center;justify-content:center;padding:1rem}
 .qs-scanner.open{display:flex}
@@ -278,6 +299,7 @@ header{background:var(--accent);padding:1rem 1.5rem;display:flex;align-items:cen
   <!-- TABS -->
   <div class="tabs" id="tabBar">
     <button class="tab active" onclick="switchTab(&#39;orders&#39;)">📋 ออเดอร์</button>
+    <button class="tab" onclick="switchTab(&#39;sell&#39;)" id="sellTab">🧾 คีย์ขาย</button>
     <button class="tab" onclick="switchTab(&#39;quick&#39;)" id="quickTab">⚡ รับ/ตัด สต็อก</button>
     <button class="tab" onclick="switchTab(&#39;inventory&#39;)" id="inventoryTab">🏪 คลังสินค้า</button>
     <button class="tab" onclick="switchTab(&#39;transfer&#39;)" id="transferTab">📦 ส่งสาขา</button>
@@ -350,6 +372,52 @@ header{background:var(--accent);padding:1rem 1.5rem;display:flex;align-items:cen
         <div id="qsList"></div>
         <button class="submit-btn" id="qsSaveBtn" onclick="qsSave()">✅ บันทึกรับเข้าคลัง</button>
       </div>
+    </div>
+  </div>
+
+  <!-- SELL / คีย์ขาย TAB -->
+  <div class="tab-content" id="tab-sell">
+    <div class="content" style="padding-top:1.25rem">
+
+      <!-- วางข้อความจากไลน์ -->
+      <div class="form-section">
+        <h4>🧾 วางออเดอร์จากไลน์</h4>
+        <div class="qs-hint" style="margin-top:0">💡 คัดลอกข้อความที่ส่งในไลน์ (ชื่อ-ที่อยู่-เบอร์ แล้วเว้นบรรทัด ตามด้วยรายการยา) มาวางในช่องนี้ได้เลย ระบบจะแยกข้อมูลให้อัตโนมัติ — ไม่ต้องคีย์ทีละรายการ</div>
+        <textarea id="sellPaste" class="sell-paste" placeholder="วางข้อความจากไลน์ตรงนี้...
+
+ตัวอย่าง
+ร้านยาสยาม (สำนักงานใหญ่)
+190/11-12 ม.5 ต.สิชล อ.สิชล จ.นครศรีธรรมราช
+โทร 0897382958
+
+Jardiance 1 กล่อง
+Micardis 40mg 1 กล่อง"></textarea>
+        <button class="submit-btn" onclick="sellParse()">↧ แยกข้อมูลออเดอร์</button>
+      </div>
+
+      <!-- ผลที่แยกได้ (แก้ไขได้) -->
+      <div id="sellResult" class="form-section" style="display:none">
+        <h4>👤 ข้อมูลผู้ส่ง / ผู้รับ (แก้ไขได้)</h4>
+        <div class="form-grid">
+          <div class="form-field" style="grid-column:1/-1"><label>ผู้ส่งบนป้าย (เว้นว่าง = พระจันทร์เภสัช)</label><input id="sellSenderName" placeholder="ชื่อผู้ส่ง — เคสฝากส่งระบบจะเติมให้อัตโนมัติ"></div>
+          <div class="form-field" style="grid-column:1/-1"><label>เบอร์ผู้ส่ง</label><input id="sellSenderPhone" inputmode="tel" placeholder="เบอร์ผู้ส่ง (ถ้ามี)"></div>
+          <div class="form-field" style="grid-column:1/-1"><label>ชื่อลูกค้า (ผู้รับ)</label><input id="sellCusName" placeholder="ชื่อ / ชื่อร้าน"></div>
+          <div class="form-field" style="grid-column:1/-1"><label>เบอร์โทร</label><input id="sellCusPhone" inputmode="tel" placeholder="เบอร์ติดต่อ"></div>
+          <div class="form-field" style="grid-column:1/-1"><label>ที่อยู่จัดส่ง</label><textarea id="sellCusAddress" class="sell-addr" placeholder="ที่อยู่สำหรับจัดส่ง"></textarea></div>
+        </div>
+
+        <div class="qs-list-head" style="margin-top:6px">
+          <span id="sellListTitle">รายการขาย</span>
+          <button class="qs-add-btn" onclick="sellAddRow()">+ เพิ่มรายการ</button>
+        </div>
+        <div class="qs-hint" style="margin:2px 2px 8px">🔗 ระบบเดา “ยาในระบบ” ให้แต่ละบรรทัดอัตโนมัติ — ถ้าจับคู่ผิดหรือขึ้น ⚠️ ให้แตะเลือกใหม่ได้ ออเดอร์ที่บันทึกจะใช้ “ชื่อยาในระบบ” ที่จับคู่ไว้ (ก๊อปกลับให้ลูกค้าเช็กได้ตรงกัน)</div>
+        <div id="sellList"></div>
+        <datalist id="sellCatalogList"></datalist>
+        <div id="sellTotal" class="sell-total" style="display:none"></div>
+
+        <button class="submit-btn" id="sellSaveBtn" onclick="sellSave()">✅ บันทึกเข้าระบบ + ตัดสต็อก</button>
+      </div>
+
     </div>
   </div>
 
@@ -640,6 +708,7 @@ function switchTab(tab) {
   document.getElementById('tab-' + tab).classList.add('active');
   event.target.classList.add('active');
   if (tab === 'stats') renderStats();
+  if (tab === 'sell') { sellLoadPrices(); setTimeout(() => { const b = document.getElementById('sellPaste'); if (b) b.focus(); }, 200); }
   if (tab === 'inventory') loadInventory();
   if (tab === 'transfer') { loadInventory(); loadTransferHistory(); }
   if (tab === 'requests') loadRequests();
@@ -748,10 +817,13 @@ function renderOrders() {
   }
 
   document.getElementById('ordersContainer').innerHTML = filtered.map(o => {
-    // ซ่อนราคาในรายการยาถ้าเป็น staff
-    const itemsDisplay = currentRole === 'staff'
-      ? o.items.replace(/ = [\d,]+ ฿/g, '')
-      : o.items;
+    // ซ่อนราคาในรายการยาถ้าเป็น staff + ตัดแท็กผู้ส่งออกจากการแสดงผล
+    let itemsDisplay = stripSenderTag(o.items);
+    if (currentRole === 'staff') itemsDisplay = itemsDisplay.replace(/ = [\d,]+ ฿/g, '');
+    const snd = orderSender(o.items);
+    const senderDisplay = snd
+      ? `<div class="order-sender">📦 ฝากส่งในนาม: ${snd.name}${snd.phone ? ' · ' + snd.phone : ''}</div>`
+      : '';
     const totalDisplay = currentRole === 'owner'
       ? `<div class="order-total">💰 ${o.total}</div>`
       : '';
@@ -765,6 +837,7 @@ function renderOrders() {
       <div class="order-customer">👤 ${o.name}</div>
       <div class="order-phone">📞 ${formatPhone(o.phone)}</div>
       <div class="order-address">📍 ${o.address}</div>
+      ${senderDisplay}
       <div class="order-items">${itemsDisplay}</div>
       <div class="order-footer">
         ${totalDisplay}
@@ -790,13 +863,23 @@ function stripPrices(itemsStr) {
   return itemsStr.replace(/\s*=\s*[\d,]+\s*฿/g, '').replace(/\s*=\s*[\d,]+\s*บาท/gi, '');
 }
 
+// ── ผู้ส่ง (เคสฝากส่ง) — ฝังไว้ท้ายข้อความรายการเป็นแท็ก ⟪SND:ชื่อ|เบอร์⟫ ──
+function orderSender(itemsStr) {
+  const m = (itemsStr || '').match(/⟪SND:([^|⟫]*)\|?([^⟫]*)⟫/);
+  return m ? { name: (m[1] || '').trim(), phone: (m[2] || '').trim() } : null;
+}
+function stripSenderTag(itemsStr) {
+  return (itemsStr || '').replace(/\s*⟪SND:[^⟫]*⟫/g, '');
+}
+
 function copyOrderText(row, noPrice = false) {
   const o = allOrders.find(x => x.row === row);
   if (!o) return;
 
   const hidePrice = noPrice || currentRole === 'staff';
 
-  const itemsText = hidePrice ? stripPrices(o.items) : o.items;
+  const cleanItems = stripSenderTag(o.items);
+  const itemsText = hidePrice ? stripPrices(cleanItems) : cleanItems;
   const totalLine = !hidePrice ? `\n─────────────────\nยอดรวม: ${o.total}` : '';
 
   const text =
@@ -965,7 +1048,7 @@ function openEditOrder(row) {
   const order = allOrders.find(o => o.row === row);
   if (!order) return;
   editingRow = row;
-  editItems = parseItems(order.items);
+  editItems = parseItems(stripSenderTag(order.items)); // ไม่เอาแท็กผู้ส่งมาเป็นรายการ
   renderEditItems();
   document.getElementById('editOverlay').classList.add('open');
 }
@@ -985,10 +1068,13 @@ async function saveEditOrder() {
   const newItemsText = editItems.map((item, i) =>
     `${i+1}. ${item.name} x${item.qty} ${order.items.match(/x\d+\s+(\S+)/)?.[1] || 'รายการ'} = ${(item.price * item.qty).toLocaleString()} ฿`
   ).join('\n');
+  // คงแท็กผู้ส่ง (เคสฝากส่ง) ไว้ ถ้าออเดอร์เดิมมี
+  const snd = orderSender(order.items);
+  const newItemsFull = snd ? `${newItemsText}\n⟪SND:${snd.name}|${snd.phone}⟫` : newItemsText;
   const newTotal = calcEditTotal().toLocaleString() + ' ฿';
 
   try {
-    await fetch(`${ADMIN_URL}?action=updateItems&row=${editingRow}&items=${encodeURIComponent(newItemsText)}&total=${encodeURIComponent(newTotal)}`);
+    await fetch(`${ADMIN_URL}?action=updateItems&row=${editingRow}&items=${encodeURIComponent(newItemsFull)}&total=${encodeURIComponent(newTotal)}`);
     // อัปเดต local
     order.items = newItemsText;
     order.total = newTotal;
@@ -1590,6 +1676,389 @@ function qsCloseScanner() {
   const b = document.getElementById('qsBarcode'); if (b) b.focus();
 }
 
+// ════════════════════════════════════════════
+// 🧾 คีย์ขาย — วางออเดอร์จากไลน์ (พนักงานไม่เห็นราคาขาย)
+// ════════════════════════════════════════════
+// ใช้แคตตาล็อกที่มีราคา (เดียวกับหน้าแคตตาล็อกลูกค้า) เพื่อคิดยอด "เงียบ ๆ"
+// สำหรับบันทึกออเดอร์ + จับคู่ชื่อยาเพื่อตัดสต็อก — ไม่แสดงราคาให้พนักงานเห็น
+const SELL_PRICE_URL = 'https://script.google.com/macros/s/AKfycbw4FAQ43SmQEnQ4lIJ720D9fHvSGlxiY6cBtik-651jnwPO1ShT5T4Kj-W9eUr-taYw/exec';
+// ปลายทางบันทึกออเดอร์ (เดียวกับที่หน้าแคตตาล็อกส่งออเดอร์เข้าระบบ)
+const SELL_ORDER_URL = 'https://script.google.com/macros/s/AKfycbzKmSzS6J6gRzLySRH4fxSxJrR8VZCtOO0eDJ0YS7bfwFMb8NtcOgch9ksUBlzSo6qSgw/exec';
+
+let sellPriceData = [];     // [{name, price, unit}] โหลดเงียบ ๆ
+let sellPriceLoaded = false;
+let sellItems = [];         // [{text, qty}]  text = บรรทัดรายการตามที่ลูกค้าสั่ง
+
+function sellLoadPrices() {
+  if (sellPriceLoaded) return;
+  const cb = 'sellPriceCb_' + Date.now();
+  window[cb] = function(json) {
+    delete window[cb];
+    try {
+      sellPriceData = json
+        .filter(r => r.name && r.name.toString().trim() !== '')
+        .map(r => ({
+          name:  r.name.toString().trim(),
+          price: typeof r.price === 'number' ? r.price : parseFloat(r.price) || 0,
+          unit:  (r.unit || '').toString().trim()
+        }));
+      sellPriceLoaded = true;
+      // เติมรายชื่อยาในระบบลง datalist (ตัดชื่อซ้ำ) ไว้ให้เลือกจับคู่
+      const seen = {}, opts = [];
+      sellPriceData.forEach(d => { if (!seen[d.name]) { seen[d.name] = 1; opts.push(`<option value="${d.name.replace(/"/g,'&quot;')}">`); } });
+      const dl = document.getElementById('sellCatalogList');
+      if (dl) dl.innerHTML = opts.join('');
+      if (sellItems.length) { sellItems.forEach(it => { if (!it.match) it.match = sellMatchName(it.text); }); sellRender(); }
+    } catch (e) {}
+  };
+  const s = document.createElement('script');
+  s.onerror = () => { delete window[cb]; };
+  s.src = SELL_PRICE_URL + '?callback=' + cb + '&t=' + Date.now();
+  document.head.appendChild(s);
+}
+
+// ── คิดราคาแบบขั้นบันได (เหมือนหน้าแคตตาล็อก) ──
+function sellMinQty(unit) { const m = (unit || '').toString().match(/^(\d+)/); return m ? parseInt(m[1]) : 1; }
+// หน่วยของยาในระบบ (เอาแถวหน่วยฐาน minQty น้อยสุด)
+function sellUnitOf(name) {
+  const rows = sellPriceData.filter(d => d.name.trim() === (name || '').trim());
+  if (!rows.length) return '';
+  let best = rows[0], bestMin = sellMinQty(rows[0].unit);
+  for (const r of rows) { const mq = sellMinQty(r.unit); if (mq < bestMin) { bestMin = mq; best = r; } }
+  return (best.unit || '').replace(/^\d+\s*/, ''); // ตัดเลขนำหน้า เช่น "10 กล่อง" → "กล่อง"
+}
+function sellUnitPrice(name, qty) {
+  const base = (name || '').trim();
+  const rows = sellPriceData.filter(d => d.name.trim() === base);
+  if (!rows.length) return 0;
+  if (rows.length === 1) return rows[0].price;
+  const tiers = rows.map(r => ({ price: r.price, minQty: sellMinQty(r.unit) })).sort((a, b) => a.minQty - b.minQty);
+  let best = tiers[0];
+  for (const t of tiers) { if (qty >= t.minQty) best = t; }
+  return best.minQty > 0 ? best.price / best.minQty : best.price;
+}
+
+// ── จับคู่บรรทัดที่ลูกค้าพิมพ์ → ชื่อยาในระบบ แบบใกล้เคียง (fuzzy) ──
+// คำที่ไม่ช่วยแยกความต่าง (หน่วย/บรรจุ) — ตัดทิ้งตอนหาโทเคน (เก็บตัวเลขไว้ช่วยแยกความแรง เช่น 15/30)
+const SELL_STOP = /^(x|กล่อง|ขวด|หลอด|แผง|เม็ด|ซอง|ชิ้น|อัน|ตลับ|แคปซูล|cap|caps|tab|tabs|tablet|tablets|กรัม|g|gm|gram|mg|mcg|ml|cc|ก|และ|จำนวน)$/i;
+function sellTokens(s) {
+  return (s || '').toString().toLowerCase()
+    .replace(/[()฿,]/g, ' ')
+    .replace(/(\d+)\s*(mg|mcg|g|gm|gram|ml|cc)/gi, '$1$2') // รวมความแรงให้ติดกัน เช่น "40 mg" → "40mg"
+    .split(/[\s/]+/).map(t => t.trim()).filter(t => t && !SELL_STOP.test(t));
+}
+// ระยะแก้ไข (Levenshtein) แบบจำกัด — ไว้จับคำที่พิมพ์ผิด/ต่างนิดหน่อย
+function sellEdit(a, b) {
+  const m = a.length, n = b.length;
+  if (Math.abs(m - n) > 2) return 99;
+  let prev = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) {
+    const cur = [i];
+    for (let j = 1; j <= n; j++) {
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    }
+    prev = cur;
+  }
+  return prev[n];
+}
+// ตรงกันแบบยืดหยุ่น (เผื่อพิมพ์ตก/ต่างตัวอักษร เช่น hirudoil ↔ hirudoid)
+function sellTokMatch(a, b) {
+  if (!a || !b) return false;
+  if (a === b) return true;
+  // โทเคนตัวเลข (ความแรง) — เทียบเฉพาะส่วนเลขนำหน้า เช่น "30" ↔ "30mg"
+  const na = a.match(/^\d+/), nb = b.match(/^\d+/);
+  if (na && nb) return na[0] === nb[0];
+  if (na || nb) return false; // เลข กับ ไม่ใช่เลข ถือว่าไม่ตรง
+  if (a.length >= 4 && b.length >= 4 && (a.startsWith(b) || b.startsWith(a))) return true;
+  if (a.length >= 5 && b.includes(a)) return true;
+  if (b.length >= 5 && a.includes(b)) return true;
+  if (a.length >= 6 && b.length >= 6 && sellEdit(a, b) <= 1) return true;
+  if (a.length >= 8 && b.length >= 8 && sellEdit(a, b) <= 2) return true;
+  return false;
+}
+// ตัด "จำนวน" ออกจากบรรทัดก่อนจับคู่ (เก็บเฉพาะเลขความแรง เช่น 30) กันจำนวนมารบกวนการเลือกความแรง
+function sellMatchText(line) {
+  return (line || '').toString()
+    .replace(/=\s*\d+.*$/, ' ')                                   // ทุกอย่างหลัง "=" (ราคา/จำนวน)
+    .replace(/(?:^|\s)[x×]\s*\d+/ig, ' ')                          // xN
+    .replace(/\d+\s*(?:กล่อง|ขวด|หลอด|แผง|ซอง|ชิ้น|อัน|ตลับ|แคปซูล|กป|ก(?=\s|$))/g, ' ') // เลข+หน่วยนับ
+    .replace(/(?:^|\s)\d+\s*$/, ' ')                               // เลขจำนวนท้ายบรรทัด
+    .trim();
+}
+function sellMatchName(line) {
+  const lt = sellTokens(sellMatchText(line));
+  if (!lt.length || !sellPriceData.length) return '';
+  let best = '', bestScore = 0;
+  for (const d of sellPriceData) {
+    const ct = sellTokens(d.name);
+    if (!ct.length) continue;
+    const brand = ct[0];
+    // ต้องเจอ "แบรนด์" (โทเคนแรกของชื่อในระบบ) ในบรรทัดก่อน ถึงจะนับ
+    if (!lt.some(t => sellTokMatch(t, brand))) continue;
+    let score = 2; // เจอแบรนด์
+    for (const c of ct.slice(1)) if (lt.some(t => sellTokMatch(t, c))) score += 1;
+    // เลือกตัวที่ตรงมากสุด ถ้าเท่ากันเอาชื่อสั้นกว่า (เจาะจงน้อยกว่า/ทั่วไปกว่า)
+    if (score > bestScore || (score === bestScore && best && d.name.length < best.length)) { bestScore = score; best = d.name; }
+  }
+  return best; // '' = จับคู่ไม่ได้
+}
+
+// ── แยกข้อความที่วางมา → ลูกค้า + รายการ ──
+// รองรับหลายบล็อก (คั่นด้วยบรรทัดว่าง) เช่น ฟอร์แมตฝากส่ง: ผู้ส่ง → ผู้รับ → รายการ
+function sellParse() {
+  const raw = document.getElementById('sellPaste').value || '';
+  if (!raw.trim()) { showToast('วางข้อความก่อนนะครับ'); return; }
+  const norm = raw.replace(/\r/g, '');
+  // แบ่งเป็นบล็อกด้วยบรรทัดว่าง
+  const blocks = norm.split(/\n\s*\n/).map(b => b.split('\n').map(l => l.trim()).filter(Boolean)).filter(b => b.length);
+  if (!blocks.length) { showToast('ไม่พบข้อมูล'); return; }
+
+  let headerLines = [], itemLines = [], senderBlock = null;
+  if (blocks.length >= 2) {
+    // บล็อกสุดท้าย = รายการยา
+    itemLines = blocks[blocks.length - 1];
+    const rest = blocks.slice(0, -1);
+    const isSender = b => /(^|\s)ผู้ส่ง|^จาก[\s:：]|sender|^from[\s:：]/i.test(b.join(' '));
+    const isRecip  = b => /กรุณาส่ง|ผู้รับ|ส่งให้|ส่งถึง|ส่งคุณ|จัดส่ง/i.test(b.join(' '));
+    // ให้คะแนน "ความเป็นบล็อกข้อมูลจริง" (มีที่อยู่/เบอร์) เพื่อข้ามบล็อกโน้ตสั้น ๆ เช่น "สั่งของค่ะ"
+    const infoScore = b => {
+      const s = b.join(' '); let n = 0;
+      if (/(หมู่|ม\.\s?\d|ต\.|อ\.|จ\.|ถนน|ซอย|ตำบล|อำเภอ|จังหวัด|เลขที่|\d{5}(\D|$))/i.test(s)) n += 2;
+      if (/0\d[\d\-\s]{7,12}/.test(s)) n += 1;
+      if (b.length >= 2) n += 1;
+      return n;
+    };
+    const infoBlocks = rest.filter(b => infoScore(b) > 0);
+    // ผู้รับ: คีย์เวิร์ดก่อน → บล็อกข้อมูลจริงที่ใกล้รายการสุด → บล็อกสุดท้าย
+    headerLines = rest.find(isRecip) || infoBlocks[infoBlocks.length - 1] || rest[rest.length - 1] || [];
+    // ผู้ส่ง: คีย์เวิร์ด "ผู้ส่ง" ก่อน → ถ้ามีบล็อกข้อมูลจริง ≥2 เอาบล็อกแรกที่ไม่ใช่ผู้รับ
+    senderBlock = rest.find(isSender) || (infoBlocks.length >= 2 ? infoBlocks.find(b => b !== headerLines) : null) || null;
+  } else {
+    // บล็อกเดียว ไม่มีบรรทัดว่างคั่น → เดาจากบรรทัดที่ "หน้าตาเหมือนรายการยา"
+    const clean = blocks[0];
+    const isItem = l => /\d/.test(l) && /(กล่อง|ขวด|หลอด|แผง|เม็ด|ซอง|ชิ้น|อัน|ตลับ|แคปซูล|กรัม|\bg\b|gm|mg|ml|cc|\bก\b)/i.test(l);
+    let firstItem = clean.findIndex(isItem);
+    while (firstItem >= 0 && /(โทร|tel|เบอร์|เลขภาษี|ม\.\d|ต\.|อ\.|จ\.|ถนน|ซอย|ตำบล|อำเภอ|จังหวัด|บ้านเลขที่|\d{5}\b)/i.test(clean[firstItem])) {
+      firstItem = clean.findIndex((l, i) => i > firstItem && isItem(l));
+    }
+    if (firstItem < 0) firstItem = Math.min(3, clean.length);
+    headerLines = clean.slice(0, firstItem);
+    itemLines   = clean.slice(firstItem);
+  }
+
+  const cust = sellParseCustomer(headerLines);
+  document.getElementById('sellCusName').value = cust.name;
+  document.getElementById('sellCusPhone').value = cust.phone;
+  document.getElementById('sellCusAddress').value = cust.address;
+
+  // ── ผู้ส่ง (เคสฝากส่ง) ── เติมให้อัตโนมัติ ถ้าไม่มีให้ว่างไว้ (= ใช้พระจันทร์เภสัช)
+  const snd = senderBlock ? sellParseSender(senderBlock) : null;
+  document.getElementById('sellSenderName').value = snd ? snd.name : '';
+  document.getElementById('sellSenderPhone').value = snd ? snd.phone : '';
+
+  // ── รายการ ── (เดาจับคู่ยาในระบบให้ด้วย)
+  // บรรทัดที่เป็น "จำนวนล้วน ๆ" (เช่น "2 กป") ให้รวมเข้ากับรายการบรรทัดบน
+  sellItems = [];
+  for (const line of itemLines) {
+    // ตัดเลขลำดับนำหน้า เช่น "1." "2)" ออก
+    const raw = line.replace(/^\s*\d+\s*[\.\)]\s*/, '').trim();
+    if (!raw) continue;
+    if (sellItems.length && sellIsQtyOnly(raw)) {
+      const prev = sellItems[sellItems.length - 1];
+      prev.text = (prev.text + ' ' + raw).trim();
+      const qm = raw.match(/\d+/);
+      if (qm) prev.qty = Math.max(1, parseInt(qm[0]));
+    } else {
+      sellItems.push({ text: raw, qty: sellGuessQty(raw), match: '' });
+    }
+  }
+  sellItems.forEach(it => { it.match = sellMatchName(it.text); });
+  document.getElementById('sellResult').style.display = 'block';
+  sellRender();
+  if (!sellItems.length) showToast('ไม่พบรายการยา ลองกด “+ เพิ่มรายการ” เองได้ครับ');
+}
+
+// บรรทัดที่เป็น "จำนวนล้วน ๆ" เช่น "2 กป", "2 กล่อง", "x3", "10 ก" (ไม่มีชื่อยา)
+function sellIsQtyOnly(line) {
+  const s = (line || '').trim();
+  return /^[xX×]?\s*\d+(\.\d+)?\s*[^\d]{0,8}$/.test(s) && !/[A-Za-z]{3,}/.test(s);
+}
+
+// แยกชื่อ/เบอร์/ที่อยู่ จากบล็อกข้อมูลลูกค้า
+function sellParseCustomer(lines) {
+  let phone = '', name = '', addr = [];
+  for (const l of lines) { const pm = l.match(/(0\d[\d\-\s]{7,12})/); if (pm) { phone = pm[1].replace(/[\s\-]/g, ''); break; } }
+  lines.forEach((l, i) => {
+    // ตัดเบอร์ (พร้อมป้าย โทร/tel/เบอร์) ออกจากบรรทัด
+    let line = l.replace(/(โทร\.?|tel\.?|เบอร์)?\s*0\d[\d\-\s]{7,12}/i, '').replace(/(โทร\.?|tel\.?|เบอร์)\s*$/i, '').trim();
+    if (i === 0) {
+      // ตัดป้ายนำหน้าชื่อผู้รับออก เช่น "กรุณาส่ง คุณโบว์" → "คุณโบว์"
+      name = line.replace(/^(กรุณาส่ง|ส่งให้|ส่งถึง|ส่งคุณ|ผู้รับ|ชื่อผู้รับ|ชื่อ|name)\s*[:：]?\s*/i, '').trim();
+      return;
+    }
+    if (line) addr.push(line);
+  });
+  // ถ้าบรรทัดแรกเป็นแค่ป้ายกำกับจนชื่อว่าง → เลื่อนบรรทัดถัดไปมาเป็นชื่อ
+  if (!name && addr.length) name = addr.shift();
+  return { name, phone, address: addr.join('\n') };
+}
+
+// แยกชื่อ/เบอร์ ผู้ส่ง จากบล็อก "ผู้ส่ง ..." (เคสฝากส่ง)
+function sellParseSender(lines) {
+  if (!lines || !lines.length) return null;
+  let phone = '', parts = [];
+  lines.forEach(l => {
+    const pm = l.match(/(0\d[\d\-\s]{7,12})/); if (pm && !phone) phone = pm[1].replace(/[\s\-]/g, '');
+    let line = l.replace(/(โทร\.?|tel\.?|เบอร์)?\s*0\d[\d\-\s]{7,12}/i, '')
+                .replace(/^(ผู้ส่ง|จาก|sender|from)\s*[:：]?\s*/i, '').trim();
+    if (line) parts.push(line);
+  });
+  return { name: parts.join(' ').trim(), phone };
+}
+
+// เดาจำนวนจากบรรทัด — ตรรกะ: "เลขตัวสุดท้ายในบรรทัด = จำนวน" เสมอ
+// ยกเว้นเลขที่เป็นความแรงยา (เช่น 40mg, 10g) หรือขนาดแพ็กในชื่อ (เช่น 10x10) ที่ชัดเจนว่าไม่ใช่จำนวน
+function sellGuessQty(text) {
+  const s = (text || '').toString();
+  const masked = s
+    .replace(/\d+(?:\.\d+)?\s*(?:mg|mcg|g|gm|gram|ml|cc|%)\b/gi, ' ') // ความแรงยา
+    .replace(/\d+\s*[x×]\s*\d+/gi, ' ');                              // ขนาดแพ็ก NxN
+  const nums = masked.match(/\d+/g);
+  return nums && nums.length ? Math.max(1, parseInt(nums[nums.length - 1])) : 1;
+}
+
+function sellAddRow() {
+  sellItems.push({ text: '', qty: 1, match: '' });
+  document.getElementById('sellResult').style.display = 'block';
+  sellRender();
+}
+function sellSetText(i, v) {
+  if (!sellItems[i]) return;
+  sellItems[i].text = v;
+  sellItems[i].match = sellMatchName(v); // ลองจับคู่ใหม่เมื่อแก้ข้อความ
+  sellRender();
+}
+function sellSetMatch(i, v) { if (sellItems[i]) { sellItems[i].match = (v || '').trim(); sellRender(); } }
+function sellSetQty(i, v) { if (!sellItems[i]) return; const n = parseInt(v); sellItems[i].qty = (!isNaN(n) && n > 0) ? n : 1; sellRender(); }
+function sellAdjust(i, d) { if (!sellItems[i]) return; sellItems[i].qty = Math.max(1, sellItems[i].qty + d); sellRender(); }
+function sellRemove(i) { sellItems.splice(i, 1); sellRender(); }
+
+function sellRender() {
+  const isOwner = currentRole === 'owner'; // เจ้าของเห็นราคา / พนักงานไม่เห็น
+  const list = document.getElementById('sellList');
+  list.innerHTML = sellItems.map((it, i) => {
+    const ok = !!it.match;
+    let priceTag = '';
+    if (isOwner) {
+      const lp = it.match ? Math.round(sellUnitPrice(it.match, it.qty) * it.qty) : 0;
+      priceTag = `<span class="sell-price${lp > 0 ? '' : ' muted'}">${lp > 0 ? lp.toLocaleString() + ' ฿' : '—'}</span>`;
+    }
+    return `<div class="sell-row">
+      <div class="sell-row-top">
+        <input class="sell-item-text" value="${(it.text || '').replace(/"/g, '&quot;')}" placeholder="รายการตามที่ลูกค้าพิมพ์" onchange="sellSetText(${i}, this.value)">
+        <button class="qs-del" onclick="sellRemove(${i})">🗑</button>
+      </div>
+      <div class="sell-row-bot">
+        <span class="sell-tag ${ok ? 'ok' : 'warn'}">${ok ? '🔗' : '⚠️'}</span>
+        <input class="sell-match ${ok ? 'ok' : 'warn'}" list="sellCatalogList" value="${(it.match || '').replace(/"/g, '&quot;')}" placeholder="เลือกยาในระบบ (ไว้ตัดสต็อก/คิดยอด)" onchange="sellSetMatch(${i}, this.value)">
+        <div class="qs-qty">
+          <button onclick="sellAdjust(${i},-1)">−</button>
+          <input type="number" min="1" value="${it.qty}" onchange="sellSetQty(${i}, this.value)" title="จำนวนหน่วยสำหรับตัดสต็อก">
+          <button onclick="sellAdjust(${i},1)">+</button>
+        </div>
+        ${priceTag}
+      </div>
+    </div>`;
+  }).join('');
+  const totalQty = sellItems.reduce((s, it) => s + (it.qty || 0), 0);
+  const unmatched = sellItems.filter(it => (it.text || '').trim() && !it.match).length;
+  document.getElementById('sellListTitle').textContent =
+    `รายการขาย (${sellItems.length} รายการ · ${totalQty} หน่วย)` + (unmatched ? ` · ⚠️ ยังไม่จับคู่ ${unmatched}` : '');
+  // ยอดรวม — แสดงเฉพาะเจ้าของ
+  const totalEl = document.getElementById('sellTotal');
+  if (totalEl) {
+    if (isOwner && sellItems.length) {
+      const total = sellItems.reduce((s, it) => s + (it.match ? Math.round(sellUnitPrice(it.match, it.qty) * it.qty) : 0), 0);
+      totalEl.textContent = `ยอดรวม: ${total.toLocaleString()} ฿` + (unmatched ? ' (ยังไม่รวมรายการที่จับคู่ไม่ได้)' : '');
+      totalEl.style.display = 'block';
+    } else {
+      totalEl.style.display = 'none';
+    }
+  }
+}
+
+async function sellSave() {
+  const name = document.getElementById('sellCusName').value.trim();
+  const phone = document.getElementById('sellCusPhone').value.trim();
+  const address = document.getElementById('sellCusAddress').value.trim();
+  const items = sellItems.filter(it => (it.text || '').trim());
+  if (!items.length) { showToast('ยังไม่มีรายการขายครับ'); return; }
+  if (!name || !phone || !address) { showToast('กรอกชื่อ/เบอร์/ที่อยู่ลูกค้าให้ครบนะครับ'); return; }
+  const unmatched = items.filter(it => !it.match).length;
+  const warn = unmatched ? `\n\n⚠️ มี ${unmatched} รายการที่ยังจับคู่ยาในระบบไม่ได้ — รายการนั้นจะบันทึกออเดอร์ปกติ แต่จะไม่ตัดสต็อกให้` : '';
+  if (!confirm(`บันทึกการขายให้ "${name}" (${items.length} รายการ) เข้าระบบ?${warn}`)) return;
+
+  const btn = document.getElementById('sellSaveBtn');
+  btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
+
+  // ข้อความรายการสำหรับบันทึกออเดอร์ — ใช้ "ชื่อยาในระบบ" ที่จับคู่ไว้
+  // (ก๊อปกลับให้ลูกค้าเช็กจะได้ตรงกัน) ถ้าจับคู่ไม่ได้ค่อย fallback เป็นข้อความลูกค้า
+  // คิดยอดเงียบ ๆ จากยาในระบบ — ไม่แสดงราคาให้พนักงานเห็น
+  let total = 0, priced = 0;
+  const itemsText = items.map((it, idx) => {
+    let label;
+    if (it.match) {
+      const lp = Math.round(sellUnitPrice(it.match, it.qty) * it.qty);
+      total += lp; priced++;
+      const u = sellUnitOf(it.match);
+      // ใส่ราคาต่อบรรทัด (= xxx ฿) เหมือนออเดอร์จากแคตตาล็อก → เจ้าของเห็น/พนักงานถูกซ่อนอัตโนมัติ
+      label = `${it.match} x${it.qty}${u ? ' ' + u : ''}${lp > 0 ? ` = ${lp.toLocaleString()} ฿` : ''}`;
+    } else {
+      label = it.text.trim();
+    }
+    return `${idx + 1}. ${label}`;
+  }).join('\n');
+  // เคสฝากส่ง: ฝากชื่อผู้ส่งไว้กับออเดอร์ ไว้ขึ้นป้ายส่ง (ซ่อนจากการแสดงผลปกติ)
+  const senderName = document.getElementById('sellSenderName').value.trim();
+  const senderPhone = document.getElementById('sellSenderPhone').value.trim();
+  const itemsTextFull = senderName ? `${itemsText}\n⟪SND:${senderName}|${senderPhone}⟫` : itemsText;
+  const totalStr = (priced === items.length && total > 0) ? total.toLocaleString() + ' ฿' : '';
+
+  // 1) บันทึกออเดอร์เข้าระบบ
+  try {
+    await fetch(SELL_ORDER_URL, {
+      method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, phone, address, items: itemsTextFull, total: totalStr })
+    });
+  } catch (e) {}
+
+  // 2) ตัดสต็อกอัตโนมัติ (best-effort — จับคู่ยาในระบบไม่ได้/ของไม่มีก็ปล่อยผ่าน)
+  for (const it of items) {
+    if (!it.match) continue;
+    try {
+      await fetch(INV_URL, {
+        method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'deduct', name: it.match, qty: it.qty, note: 'คีย์ขาย' })
+      });
+    } catch (e) {}
+  }
+
+  // เคลียร์ฟอร์ม
+  sellItems = [];
+  document.getElementById('sellPaste').value = '';
+  document.getElementById('sellCusName').value = '';
+  document.getElementById('sellCusPhone').value = '';
+  document.getElementById('sellCusAddress').value = '';
+  document.getElementById('sellSenderName').value = '';
+  document.getElementById('sellSenderPhone').value = '';
+  document.getElementById('sellResult').style.display = 'none';
+  sellRender();
+  stockData = []; // ให้โหลดสต็อกใหม่เมื่อเข้าไปดู
+  btn.disabled = false; btn.textContent = '✅ บันทึกเข้าระบบ + ตัดสต็อก';
+  showToast('✅ บันทึกการขายเข้าระบบแล้วครับ');
+  const b = document.getElementById('sellPaste'); if (b) b.focus();
+}
+
 // ── PERIPAGE LABEL ──
 const LABEL_DEFAULT_SENDER = { name: 'พระจันทร์เภสัช', phone: '0942905564' };
 const LABEL_WIDTH = 384; // A6/A6+ = 48มม. = 384 dots (8 dots/มม.) เปลี่ยนเป็น 576 ถ้าใช้รุ่น 80มม.
@@ -1597,8 +2066,11 @@ let labelRow = null;
 
 function openLabel(row) {
   labelRow = row;
-  document.getElementById('lblSenderName').value = LABEL_DEFAULT_SENDER.name;
-  document.getElementById('lblSenderPhone').value = LABEL_DEFAULT_SENDER.phone;
+  // เคสฝากส่ง: ถ้าออเดอร์มีผู้ส่งฝังไว้ ใช้ผู้ส่งนั้นแทนค่าเริ่มต้น
+  const o = allOrders.find(x => x.row === row);
+  const snd = o ? orderSender(o.items) : null;
+  document.getElementById('lblSenderName').value = snd && snd.name ? snd.name : LABEL_DEFAULT_SENDER.name;
+  document.getElementById('lblSenderPhone').value = snd && snd.phone ? snd.phone : LABEL_DEFAULT_SENDER.phone;
   document.getElementById('labelOverlay').classList.add('open');
   renderLabel();
 }
